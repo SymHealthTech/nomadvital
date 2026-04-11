@@ -278,7 +278,7 @@ export default async function PersonaLandingPage({ params }) {
               </>
             ) : (
               <>
-                <Link href={isLoggedIn ? '/pricing' : '/signup'} style={{ background: '#fff', color: persona.color, fontWeight: '700', fontSize: '14px', padding: '12px 24px', borderRadius: '10px', textDecoration: 'none', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
+                <Link href={isLoggedIn ? '/pricing' : '/guest'} style={{ background: '#fff', color: persona.color, fontWeight: '700', fontSize: '14px', padding: '12px 24px', borderRadius: '10px', textDecoration: 'none', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
                   {isLoggedIn ? 'Upgrade to Pro →' : 'Start free →'}
                 </Link>
                 <Link href="#how-it-works" style={{ background: 'transparent', color: '#fff', fontWeight: '600', fontSize: '14px', padding: '12px 24px', borderRadius: '10px', border: '1.5px solid rgba(255,255,255,0.6)', textDecoration: 'none', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>

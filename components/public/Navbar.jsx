@@ -55,6 +55,7 @@ export default function Navbar() {
 
   const isLoggedIn = status === 'authenticated'
   const user = session?.user
+  const dashboardHref = user?.role === 'admin' ? '/admin' : '/dashboard'
 
   return (
     <nav className="bg-[#085041] text-white sticky top-0 z-50 shadow-md">
@@ -189,7 +190,7 @@ export default function Navbar() {
                     </div>
                   </div>
                   {[
-                    { href: '/dashboard', label: 'Dashboard' },
+                    { href: dashboardHref, label: 'Dashboard' },
                     { href: '/ask', label: 'AI Advisor' },
                     { href: '/pricing', label: user?.plan === 'pro' ? 'Manage subscription' : 'Upgrade to Pro' },
                   ].map(item => (
@@ -252,7 +253,7 @@ export default function Navbar() {
                     </div>
                   </div>
                   {[
-                    { href: '/dashboard', label: 'Dashboard' },
+                    { href: dashboardHref, label: 'Dashboard' },
                     { href: '/ask', label: 'AI Advisor' },
                     { href: '/pricing', label: user?.plan === 'pro' ? 'Manage subscription' : 'Upgrade to Pro' },
                   ].map(item => (
@@ -337,7 +338,7 @@ export default function Navbar() {
 
           {isLoggedIn ? (
             <>
-              <Link href="/dashboard" onClick={() => setMenuOpen(false)}>Dashboard</Link>
+              <Link href={dashboardHref} onClick={() => setMenuOpen(false)}>Dashboard</Link>
               <button
                 onClick={() => { setMenuOpen(false); signOut({ redirect: false }).then(() => { window.location.href = '/' }) }}
                 style={{ background: 'none', border: 'none', color: '#9FE1CB', fontSize: '14px', fontWeight: '500', cursor: 'pointer', padding: 0, textAlign: 'left', fontFamily: 'inherit' }}
