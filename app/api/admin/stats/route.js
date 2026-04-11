@@ -1,32 +1,64 @@
 export const dynamic = 'force-dynamic'
 
 import { NextResponse } from 'next/server'
+import { auth } from '@/lib/auth'
 import connectDB from '@/lib/mongodb'
 import User from '@/models/User'
-import Destination from '@/models/Destination'
-import BlogPost from '@/models/BlogPost'
+
+async function requireAdmin() {
+  const session = await auth()
+  if (!session || session.user?.role !== 'admin') return null
+  return session
+}
 
 export async function GET() {
+  const session = await requireAdmin()
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   try {
     await connectDB()
 
-    const [totalUsers, proUsers, totalDestinations, publishedDestinations, totalPosts, publishedPosts] =
-      await Promise.all([
-        User.countDocuments(),
-        User.countDocuments({ plan: 'pro' }),
-        Destination.countDocuments(),
-        Destination.countDocuments({ isPublished: true }),
-        BlogPost.countDocuments(),
-        BlogPost.countDocuments({ isPublished: true }),
-      ])
+    const now = new Date()
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+
+    const [totalUsers, proUsers, questionsAgg, newSignupsThisWeek, recentSignupsRaw] = await Promise.all([
+      User.countDocuments({ isGuest: { $ne: true } }),
+      User.countDocuments({ isGuest: { $ne: true }, plan: 'pro' }),
+      User.aggregate([
+        { $match: { lastQuestionDate: { $gte: startOfToday } } },
+        { $group: { _id: null, total: { $sum: '$dailyQuestionCount' } } },
+      ]),
+      User.countDocuments({ isGuest: { $ne: true }, createdAt: { $gte: sevenDaysAgo } }),
+      User.find({ isGuest: { $ne: true } })
+        .select('name email plan createdAt')
+        .sort({ createdAt: -1 })
+        .limit(10)
+        .lean(),
+    ])
+
+    const questionsToday = questionsAgg[0]?.total || 0
+    const monthlyRevenue = proUsers * 12
+    const apiCostToday = questionsToday * 0.004
 
     return NextResponse.json({
-      users: { total: totalUsers, pro: proUsers },
-      destinations: { total: totalDestinations, published: publishedDestinations },
-      posts: { total: totalPosts, published: publishedPosts },
+      totalUsers,
+      proUsers,
+      monthlyRevenue,
+      questionsToday,
+      apiCostToday,
+      newSignupsThisWeek,
+      recentSignups: recentSignupsRaw.map((u) => ({
+        name: u.name,
+        email: u.email,
+        plan: u.plan,
+        createdAt: u.createdAt,
+      })),
     })
   } catch (err) {
     console.error('GET /api/admin/stats:', err)
-    return NextResponse.json({ error: 'Failed to fetch stats' }, { status: 500 })
+    return NextResponse.json({ error: 'Service temporarily unavailable.' }, { status: 503 })
   }
 }

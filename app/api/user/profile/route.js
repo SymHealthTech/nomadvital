@@ -18,8 +18,11 @@ export async function PATCH(request) {
     return NextResponse.json({ error: 'travelerType is required.' }, { status: 400 })
   }
 
-  await connectDB()
-  await User.findByIdAndUpdate(session.user.id, { travelerType })
-
-  return NextResponse.json({ success: true })
+  try {
+    await connectDB()
+    await User.findByIdAndUpdate(session.user.id, { travelerType })
+    return NextResponse.json({ success: true })
+  } catch {
+    return NextResponse.json({ error: 'Service temporarily unavailable. Please try again.' }, { status: 503 })
+  }
 }

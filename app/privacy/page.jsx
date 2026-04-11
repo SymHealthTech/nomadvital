@@ -136,7 +136,7 @@ export default function PrivacyPage() {
             <Li><strong style={{ color: '#085041' }}>Objection</strong> — object to certain types of data processing</Li>
           </ul>
           <p style={P_STYLE}>
-            To exercise any of these rights, email us at <a href="mailto:privacy@nomadvital.com" style={{ color: '#1D9E75', textDecoration: 'underline' }}>privacy@nomadvital.com</a>. We will respond within 30 days.
+            To exercise any of these rights, email us at <a href="mailto:contact@nomadvital.com" style={{ color: '#1D9E75', textDecoration: 'underline' }}>contact@nomadvital.com</a>. We will respond within 30 days.
           </p>
         </div>
 
@@ -165,8 +165,8 @@ export default function PrivacyPage() {
           <p style={{ ...P_STYLE, margin: 0 }}>
             <strong style={{ color: '#085041' }}>Questions?</strong>{' '}
             Contact us at{' '}
-            <a href="mailto:privacy@nomadvital.com" style={{ color: '#1D9E75', textDecoration: 'underline' }}>
-              privacy@nomadvital.com
+            <a href="mailto:contact@nomadvital.com" style={{ color: '#1D9E75', textDecoration: 'underline' }}>
+              contact@nomadvital.com
             </a>
           </p>
         </div>

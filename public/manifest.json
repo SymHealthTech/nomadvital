@@ -1,11 +1,11 @@
 {
   "name": "NomadVital",
   "short_name": "NomadVital",
-  "description": "Health and nutrition guide for travelers",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#085041",
   "theme_color": "#085041",
+  "description": "AI-powered health guidance for travelers",
   "icons": [
     {
       "src": "/icons/icon-192.png",

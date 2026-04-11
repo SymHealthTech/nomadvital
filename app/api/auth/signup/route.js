@@ -22,24 +22,28 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Password must be at least 8 characters.' }, { status: 400 })
   }
 
-  await connectDB()
+  try {
+    await connectDB()
 
-  // Check for existing account
-  const existing = await User.findOne({ email: email.toLowerCase() })
-  if (existing) {
-    return NextResponse.json({ error: 'An account with this email already exists.' }, { status: 409 })
+    // Check for existing account
+    const existing = await User.findOne({ email: email.toLowerCase() })
+    if (existing) {
+      return NextResponse.json({ error: 'An account with this email already exists.' }, { status: 409 })
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 12)
+    const role = email.toLowerCase() === process.env.ADMIN_EMAIL?.toLowerCase() ? 'admin' : 'user'
+
+    await User.create({
+      name,
+      email: email.toLowerCase(),
+      password: hashedPassword,
+      role,
+      plan: 'free',
+    })
+
+    return NextResponse.json({ success: true, message: 'Account created.' }, { status: 201 })
+  } catch {
+    return NextResponse.json({ error: 'Service temporarily unavailable. Please try again.' }, { status: 503 })
   }
-
-  const hashedPassword = await bcrypt.hash(password, 12)
-  const role = email.toLowerCase() === process.env.ADMIN_EMAIL?.toLowerCase() ? 'admin' : 'user'
-
-  await User.create({
-    name,
-    email: email.toLowerCase(),
-    password: hashedPassword,
-    role,
-    plan: 'free',
-  })
-
-  return NextResponse.json({ success: true, message: 'Account created.' }, { status: 201 })
 }

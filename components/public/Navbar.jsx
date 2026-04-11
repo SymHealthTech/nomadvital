@@ -279,7 +279,12 @@ export default function Navbar() {
               Start free
             </Link>
           )}
-          <button className="text-white" onClick={() => { setMenuOpen(!menuOpen); setUserMenuOpen(false) }} aria-label="Toggle menu">
+          <button
+            className="text-white"
+            onClick={() => { setMenuOpen(!menuOpen); setUserMenuOpen(false) }}
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={menuOpen}
+          >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               {menuOpen
                 ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

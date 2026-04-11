@@ -19,44 +19,48 @@ export async function POST(request) {
     ? process.env.DODO_PRO_ANNUAL_PRODUCT_ID
     : process.env.DODO_PRO_MONTHLY_PRODUCT_ID
 
-  await connectDB()
-  const user = await User.findById(session.user.id)
+  try {
+    await connectDB()
+    const user = await User.findById(session.user.id)
 
-  if (!user) {
-    return NextResponse.json({ error: 'User not found.' }, { status: 404 })
-  }
+    if (!user) {
+      return NextResponse.json({ error: 'User not found.' }, { status: 404 })
+    }
 
-  // Create Dodo customer on first checkout
-  if (!user.dodoCustomerId) {
-    const customer = await dodo.customers.create({
-      email: user.email,
-      name: user.name,
+    // Create Dodo customer on first checkout
+    if (!user.dodoCustomerId) {
+      const customer = await dodo.customers.create({
+        email: user.email,
+        name: user.name,
+      })
+      user.dodoCustomerId = customer.customer_id
+      await user.save()
+    }
+
+    // Create checkout / subscription session
+    const checkout = await dodo.subscriptions.create({
+      billing: {
+        city: 'N/A',
+        country: 'IN',
+        state: 'N/A',
+        street: 'N/A',
+        zipcode: 0,
+      },
+      customer: { customer_id: user.dodoCustomerId },
+      product_id: productId,
+      quantity: 1,
+      return_url: `${process.env.NEXTAUTH_URL}/dashboard?payment=success`,
+      payment_link: true,
     })
-    user.dodoCustomerId = customer.customer_id
-    await user.save()
+
+    // Store pending subscription ID so sync-plan can retrieve it quickly
+    const subId = checkout.subscription_id ?? checkout.id ?? null
+    if (subId) {
+      await User.findByIdAndUpdate(user._id, { dodoSubscriptionId: subId })
+    }
+
+    return NextResponse.json({ checkoutUrl: checkout.payment_link })
+  } catch {
+    return NextResponse.json({ error: 'Service temporarily unavailable. Please try again.' }, { status: 503 })
   }
-
-  // Create checkout / subscription session
-  const checkout = await dodo.subscriptions.create({
-    billing: {
-      city: 'N/A',
-      country: 'IN',
-      state: 'N/A',
-      street: 'N/A',
-      zipcode: 0,
-    },
-    customer: { customer_id: user.dodoCustomerId },
-    product_id: productId,
-    quantity: 1,
-    return_url: `${process.env.NEXTAUTH_URL}/dashboard?payment=success`,
-    payment_link: true,
-  })
-
-  // Store pending subscription ID so sync-plan can retrieve it quickly
-  const subId = checkout.subscription_id ?? checkout.id ?? null
-  if (subId) {
-    await User.findByIdAndUpdate(user._id, { dodoSubscriptionId: subId })
-  }
-
-  return NextResponse.json({ checkoutUrl: checkout.payment_link })
 }

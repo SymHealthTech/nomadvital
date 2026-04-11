@@ -17,8 +17,14 @@ export async function POST() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  await connectDB()
-  const user = await User.findById(session.user.id)
+  let user
+  try {
+    await connectDB()
+    user = await User.findById(session.user.id)
+  } catch {
+    return NextResponse.json({ error: 'Service temporarily unavailable. Please try again.' }, { status: 503 })
+  }
+
   if (!user) {
     return NextResponse.json({ error: 'User not found' }, { status: 404 })
   }

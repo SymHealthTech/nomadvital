@@ -6,14 +6,63 @@ import { notFound } from 'next/navigation'
 import { auth } from '@/lib/auth'
 import PricingSection from '@/components/public/PricingSection'
 
+const PERSONA_META = {
+  runner: {
+    title: 'Travel Health Guide for Runners — Nutrition & Fueling Abroad',
+    description:
+      'Nutrition and food safety advice for runners traveling internationally. Race day fueling, carb loading, and safe eating for competitive runners worldwide.',
+  },
+  mountaineer: {
+    title: 'High Altitude Nutrition Guide for Mountaineers',
+    description:
+      'Food safety, altitude nutrition, and health guidance for mountaineers and trekkers. Safe eating for Himalayan treks, Alpine climbs, and high altitude expeditions.',
+  },
+  tourist: {
+    title: 'Food Safety Travel Guide for Tourists — Stay Healthy Abroad',
+    description:
+      'Food safety and nutrition tips for tourists. Avoid food poisoning, manage dietary conditions, and eat safely across 50+ destinations.',
+  },
+  business: {
+    title: 'Business Travel Health Guide — Eat Well on Corporate Trips',
+    description:
+      'Health and nutrition guidance for business travelers. Manage dietary conditions, eat safely, and stay healthy on corporate trips worldwide.',
+  },
+  wellness: {
+    title: 'Wellness Travel Health Guide — Nutrition & Healthy Eating Abroad',
+    description:
+      'Nutrition and wellness guidance for health-conscious travelers. Healthy eating, dietary condition management, and food safety for wellness travel.',
+  },
+  adventure: {
+    title: 'Adventure Travel Health & Nutrition Guide',
+    description:
+      'Food safety and nutrition for adventure travelers. Remote destination health advice, allergen awareness, and dietary condition management for adventure trips.',
+  },
+}
+
 export async function generateMetadata({ params }) {
   const persona = getPersonaBySlug(params.type)
-  if (!persona) return {}
+  const metaOverride = PERSONA_META[params.type]
+  const title = metaOverride?.title || persona?.metaTitle || 'Travel Health Guide | NomadVital'
+  const description =
+    metaOverride?.description ||
+    persona?.metaDescription ||
+    'AI-powered food safety and nutrition guidance for travelers.'
   return {
-    title: persona.metaTitle,
-    description: persona.metaDescription,
+    title,
+    description,
+    keywords: [
+      'travel health guide',
+      `${params.type} travel health`,
+      'food safety travel',
+      'AI health advisor',
+    ],
     alternates: {
       canonical: `https://nomadvital.com/for/${params.type}`,
+    },
+    openGraph: {
+      title,
+      description,
+      url: `https://nomadvital.com/for/${params.type}`,
     },
   }
 }

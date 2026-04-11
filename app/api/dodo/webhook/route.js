@@ -28,7 +28,12 @@ export async function POST(request) {
   const payload = JSON.parse(rawBody)
   const eventType = payload.type
 
-  await connectDB()
+  try {
+    await connectDB()
+  } catch {
+    // Return 200 so Dodo doesn't keep retrying — we'll rely on the next delivery
+    return NextResponse.json({ received: true })
+  }
 
   if (
     eventType === 'subscription.active' ||

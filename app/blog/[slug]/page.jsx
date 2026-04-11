@@ -142,17 +142,28 @@ function renderMarkdown(content) {
 }
 
 export async function generateMetadata({ params }) {
+  let post = null
   try {
     await connectDB()
-    const post = await BlogPost.findOne({ slug: params.slug, isPublished: true }).select('title metaDescription')
-    if (!post) return {}
-    return {
-      title: `${post.title} — NomadVital`,
-      description: post.metaDescription || post.title,
-      alternates: { canonical: `https://nomadvital.com/blog/${params.slug}` },
-    }
-  } catch {
-    return {}
+    post = await BlogPost.findOne({ slug: params.slug, isPublished: true })
+      .select('title summary metaDescription tag')
+      .lean()
+  } catch {}
+  if (!post) return { title: 'Article | NomadVital' }
+  const description =
+    post.metaDescription ||
+    post.summary ||
+    `${post.title} — travel health and food safety guide for travelers.`
+  return {
+    title: post.title,
+    description,
+    keywords: [post.tag, 'travel health', 'food safety', 'travel nutrition'].filter(Boolean),
+    alternates: { canonical: `https://nomadvital.com/blog/${params.slug}` },
+    openGraph: {
+      title: post.title,
+      description,
+      url: `https://nomadvital.com/blog/${params.slug}`,
+    },
   }
 }
 

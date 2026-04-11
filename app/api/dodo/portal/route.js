@@ -13,8 +13,13 @@ export async function POST() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  await connectDB()
-  const user = await User.findById(session.user.id).select('dodoCustomerId')
+  let user
+  try {
+    await connectDB()
+    user = await User.findById(session.user.id).select('dodoCustomerId')
+  } catch {
+    return NextResponse.json({ error: 'Service temporarily unavailable. Please try again.' }, { status: 503 })
+  }
 
   if (!user?.dodoCustomerId) {
     return NextResponse.json({ error: 'No subscription found. Please contact support.' }, { status: 404 })

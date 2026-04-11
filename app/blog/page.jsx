@@ -4,8 +4,19 @@ import connectDB from '@/lib/mongodb'
 import BlogPost from '@/models/BlogPost'
 
 export const metadata = {
-  title: 'Health & Travel Articles — NomadVital',
-  description: 'Research-backed guides for travelers managing dietary conditions abroad — diabetes, gluten-free, allergies, water safety, and more.',
+  title: 'Travel Health Articles & Guides',
+  description:
+    'Research-backed health guides for travelers managing dietary conditions abroad. Expert advice on food safety, nutrition, and healthy eating while traveling.',
+  keywords: [
+    'travel health articles',
+    'food safety guides',
+    'travel nutrition blog',
+    'dietary conditions abroad',
+  ],
+  openGraph: {
+    title: 'Travel Health Articles & Guides | NomadVital',
+    url: 'https://nomadvital.com/blog',
+  },
 }
 
 export default async function BlogPage() {

@@ -17,6 +17,7 @@
     "mongoose": "^8.6.0",
     "next": "14.2.35",
     "next-auth": "^5.0.0-beta.20",
+    "next-pwa": "^5.6.0",
     "react": "^18",
     "react-dom": "^18",
     "standardwebhooks": "^1.0.0",

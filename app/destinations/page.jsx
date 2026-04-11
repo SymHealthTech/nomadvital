@@ -5,8 +5,20 @@ import connectDB from '@/lib/mongodb'
 import Destination from '@/models/Destination'
 
 export const metadata = {
-  title: 'Destination Guides — NomadVital',
-  description: '50+ country health guides for travelers with dietary conditions — food safety, allergens, and nutrition for every destination.',
+  title: 'Destination Health Guides — 50+ Countries',
+  description:
+    'Country-specific food safety guides for travelers. Get condition-specific advice for diabetes, gluten-free diets, and allergies across 50+ destinations worldwide.',
+  keywords: [
+    'destination health guide',
+    'food safety by country',
+    'travel dietary guide',
+    'gluten free destination guide',
+    'diabetes travel guide by country',
+  ],
+  openGraph: {
+    title: 'Destination Health Guides — 50+ Countries | NomadVital',
+    url: 'https://nomadvital.com/destinations',
+  },
 }
 
 // Static metadata per destination (flags, placeholder colors, descriptions)

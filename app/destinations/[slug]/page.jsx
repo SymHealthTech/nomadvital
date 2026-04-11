@@ -97,17 +97,28 @@ function renderMarkdown(content) {
 }
 
 export async function generateMetadata({ params }) {
+  const { slug } = params
+  let destName = slug.charAt(0).toUpperCase() + slug.slice(1)
   try {
     await connectDB()
-    const dest = await Destination.findOne({ slug: params.slug.toLowerCase(), isPublished: true }).select('name country')
-    if (!dest) return {}
-    return {
-      title: `${dest.name} Health Guide for Travelers — NomadVital`,
-      description: `Health and nutrition guide for travelers visiting ${dest.name}. Food safety, allergen guidance, and dietary tips for ${dest.country}.`,
-      alternates: { canonical: `https://nomadvital.com/destinations/${params.slug}` },
-    }
-  } catch {
-    return {}
+    const dest = await Destination.findOne({ slug: slug.toLowerCase() }).select('name').lean()
+    if (dest?.name) destName = dest.name
+  } catch {}
+  return {
+    title: `${destName} Health Guide for Travelers — Food Safety & Nutrition`,
+    description: `Complete ${destName} food safety and nutrition guide for travelers. Condition-specific advice for diabetes, gluten-free diets, nut allergies and more. Know what to eat in ${destName}.`,
+    keywords: [
+      `${destName} food safety`,
+      `${destName} travel health`,
+      `${destName} gluten free`,
+      `${destName} diabetes travel`,
+      'destination health guide',
+    ],
+    alternates: { canonical: `https://nomadvital.com/destinations/${slug}` },
+    openGraph: {
+      title: `${destName} Health Guide | NomadVital`,
+      url: `https://nomadvital.com/destinations/${slug}`,
+    },
   }
 }
 

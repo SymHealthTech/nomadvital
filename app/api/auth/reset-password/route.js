@@ -14,7 +14,11 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Password must be at least 8 characters.' }, { status: 400 })
   }
 
-  await connectDB()
+  try {
+    await connectDB()
+  } catch {
+    return NextResponse.json({ error: 'Service temporarily unavailable. Please try again.' }, { status: 503 })
+  }
 
   const user = await User.findOne({
     resetPasswordToken: token,

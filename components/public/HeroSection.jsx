@@ -39,14 +39,14 @@ export default async function HeroSection() {
             textAlign: 'center',
           }}
         >
-          Stay healthy{' '}
-          <span style={{ color: '#5DCAA5', fontStyle: 'normal' }}>everywhere</span>
+          AI travel health advisor for{' '}
+          <span style={{ color: '#5DCAA5', fontStyle: 'normal' }}>food safety</span>
           <br />
-          you go
+          and nutrition abroad
         </h1>
 
         <p className="font-inter text-lg md:text-xl text-[#9FE1CB] max-w-2xl mx-auto mb-10 leading-relaxed font-light">
-          AI-powered nutrition and food safety — for every kind of traveler.
+          Personalized AI guidance for travelers with diabetes, gluten-free diets, allergies and more — for every kind of trip.
         </p>
 
         <div className="flex flex-col items-center justify-center">

@@ -1,3 +1,5 @@
+// DEPRECATED: NomadVital now uses Dodo Payments (see app/api/dodo/*).
+// This webhook route is kept for legacy reference and is not configured in production.
 export const dynamic = 'force-dynamic'
 
 import { NextResponse } from 'next/server'
