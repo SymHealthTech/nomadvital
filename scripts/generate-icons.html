@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Generate NomadVital Icons</title>
+  <style>
+    body { font-family: sans-serif; padding: 40px; background: #f5f5f5; text-align: center; }
+    canvas { border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); margin: 10px; }
+    button { background: #1D9E75; color: white; border: none; padding: 12px 28px; border-radius: 8px; font-size: 15px; cursor: pointer; margin: 8px; }
+    button:hover { background: #085041; }
+    h2 { color: #085041; }
+    .note { color: #666; font-size: 13px; margin-top: 24px; }
+  </style>
+</head>
+<body>
+  <h2>NomadVital — Icon Generator</h2>
+  <p>Click the buttons below to download the icon files, then replace them in <code>public/icons/</code></p>
+
+  <div>
+    <canvas id="c192" width="192" height="192"></canvas>
+    <canvas id="c512" width="512" height="512"></canvas>
+  </div>
+
+  <div>
+    <button onclick="download('c192', 'icon-192.png')">⬇ Download icon-192.png</button>
+    <button onclick="download('c512', 'icon-512.png')">⬇ Download icon-512.png</button>
+  </div>
+
+  <p class="note">Save both files to: <code>nomadvital/public/icons/</code> replacing the existing ones.</p>
+
+  <script>
+    function drawIcon(canvas) {
+      const s = canvas.width
+      const ctx = canvas.getContext('2d')
+      const cx = s / 2, cy = s / 2
+
+      // Background rounded square
+      const r = s * 0.211  // ~108/512
+      ctx.beginPath()
+      ctx.moveTo(r, 0)
+      ctx.lineTo(s - r, 0)
+      ctx.quadraticCurveTo(s, 0, s, r)
+      ctx.lineTo(s, s - r)
+      ctx.quadraticCurveTo(s, s, s - r, s)
+      ctx.lineTo(r, s)
+      ctx.quadraticCurveTo(0, s, 0, s - r)
+      ctx.lineTo(0, r)
+      ctx.quadraticCurveTo(0, 0, r, 0)
+      ctx.closePath()
+      ctx.fillStyle = '#085041'
+      ctx.fill()
+
+      const scale = s / 512
+
+      // Outer globe ring
+      ctx.beginPath()
+      ctx.arc(cx, cy, 175 * scale, 0, Math.PI * 2)
+      ctx.strokeStyle = '#E1F5EE'
+      ctx.lineWidth = 10 * scale
+      ctx.stroke()
+
+      // Compass / star shape — 12-point star scaled
+      const pts = [
+        [256,100],[299,184],[388,155],[340,244],
+        [388,333],[299,304],[256,388],[213,304],
+        [124,333],[172,244],[124,155],[213,184]
+      ]
+      ctx.beginPath()
+      pts.forEach(([x, y], i) => {
+        const sx = (x - 256) * scale + cx
+        const sy = (y - 256) * scale + cy
+        i === 0 ? ctx.moveTo(sx, sy) : ctx.lineTo(sx, sy)
+      })
+      ctx.closePath()
+      ctx.fillStyle = 'rgba(225, 245, 238, 0.85)'
+      ctx.fill()
+
+      // Green centre dot
+      ctx.beginPath()
+      ctx.arc(cx, cy, 46 * scale, 0, Math.PI * 2)
+      ctx.fillStyle = '#1D9E75'
+      ctx.fill()
+    }
+
+    function download(canvasId, filename) {
+      const canvas = document.getElementById(canvasId)
+      const link = document.createElement('a')
+      link.download = filename
+      link.href = canvas.toDataURL('image/png')
+      link.click()
+    }
+
+    // Draw both on load
+    drawIcon(document.getElementById('c192'))
+    drawIcon(document.getElementById('c512'))
+  </script>
+</body>
+</html>

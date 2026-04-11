@@ -44,8 +44,8 @@ export default async function HeroSection() {
           {' '}you go
         </h1>
 
-        <p className="font-inter text-lg md:text-xl text-[#9FE1CB] max-w-2xl mx-auto mb-10 leading-relaxed font-light">
-          AI-powered health and nutrition guidance for every type of international traveler.
+        <p className="font-inter text-sm md:text-lg text-[#9FE1CB] max-w-2xl mx-auto mb-10 leading-relaxed font-light">
+          Smart health &amp; nutrition guidance for travelers — wherever you go.
         </p>
 
         <div className="flex flex-col items-center justify-center">
