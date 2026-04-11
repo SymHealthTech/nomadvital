@@ -6,7 +6,7 @@ export default function InstallBanner() {
   const [deferredPrompt, setDeferredPrompt] = useState(null)
   const [isIOS, setIsIOS] = useState(false)
   const [show, setShow] = useState(false)
-  const [showIOSSteps, setShowIOSSteps] = useState(false)
+  const [showIOSSteps, setShowIOSSteps] = useState(false) // iOS: toggle tap instructions
   const [installed, setInstalled] = useState(false)
 
   useEffect(() => {
@@ -61,87 +61,36 @@ export default function InstallBanner() {
 
   return (
     <div style={{
-      background: '#085041',
-      borderBottom: '1px solid #0F6E56',
-      padding: '10px 16px',
+      background: '#0F6E56',
+      borderBottom: '1px solid #085041',
+      padding: '7px 16px',
       display: 'flex',
       alignItems: 'center',
-      gap: '12px',
+      justifyContent: 'center',
+      gap: '10px',
       zIndex: 49,
-      position: 'relative',
     }}>
-      {/* App icon */}
-      <div style={{
-        width: '36px', height: '36px', borderRadius: '10px',
-        background: '#1D9E75', display: 'flex', alignItems: 'center',
-        justifyContent: 'center', flexShrink: 0,
-      }}>
-        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-          <circle cx="9" cy="9" r="7.5" stroke="#E1F5EE" strokeWidth="1"/>
-          <path d="M9 2.5L10.8 6L14.5 4.8L12.5 8.5L14.5 12.2L10.8 11L9 14.5L7.2 11L3.5 12.2L5.5 8.5L3.5 4.8L7.2 6Z" fill="#E1F5EE" opacity="0.85"/>
-          <circle cx="9" cy="9" r="2" fill="#1D9E75"/>
+      <button
+        onClick={isIOS ? () => setShowIOSSteps(s => !s) : handleInstall}
+        style={{
+          background: 'none', border: 'none', cursor: 'pointer',
+          display: 'flex', alignItems: 'center', gap: '6px', padding: 0,
+        }}
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5DCAA5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 18v-6M9 15l3 3 3-3M4 12v7a1 1 0 001 1h14a1 1 0 001-1v-7"/>
         </svg>
-      </div>
+        <span style={{ fontSize: '12px', fontWeight: '600', color: '#5DCAA5', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
+          {showIOSSteps ? 'Tap Share → "Add to Home Screen"' : 'Install like an app'}
+        </span>
+      </button>
 
-      {/* Text */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: '13px', fontWeight: '600', color: '#fff', fontFamily: 'var(--font-inter, Inter, sans-serif)', lineHeight: '1.3' }}>
-          Add NomadVital to your home screen
-        </div>
-        {isIOS && !showIOSSteps && (
-          <div style={{ fontSize: '11px', color: '#9FE1CB', fontFamily: 'var(--font-inter, Inter, sans-serif)', marginTop: '1px' }}>
-            Install it as an app — works offline too
-          </div>
-        )}
-        {isIOS && showIOSSteps && (
-          <div style={{ fontSize: '11px', color: '#9FE1CB', fontFamily: 'var(--font-inter, Inter, sans-serif)', marginTop: '3px', lineHeight: '1.5' }}>
-            Tap the <strong style={{ color: '#5DCAA5' }}>Share</strong> button{' '}
-            <svg style={{ display: 'inline', verticalAlign: 'middle' }} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#5DCAA5" strokeWidth="2">
-              <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/>
-            </svg>
-            {' '}then <strong style={{ color: '#5DCAA5' }}>"Add to Home Screen"</strong>
-          </div>
-        )}
-      </div>
-
-      {/* Action button */}
-      {!isIOS ? (
-        <button
-          onClick={handleInstall}
-          style={{
-            background: '#1D9E75', color: '#fff', border: 'none',
-            borderRadius: '8px', padding: '7px 14px', fontSize: '12px',
-            fontWeight: '600', cursor: 'pointer', flexShrink: 0,
-            fontFamily: 'var(--font-inter, Inter, sans-serif)', whiteSpace: 'nowrap',
-          }}
-        >
-          Install
-        </button>
-      ) : (
-        <button
-          onClick={() => setShowIOSSteps(s => !s)}
-          style={{
-            background: '#1D9E75', color: '#fff', border: 'none',
-            borderRadius: '8px', padding: '7px 14px', fontSize: '12px',
-            fontWeight: '600', cursor: 'pointer', flexShrink: 0,
-            fontFamily: 'var(--font-inter, Inter, sans-serif)', whiteSpace: 'nowrap',
-          }}
-        >
-          How to
-        </button>
-      )}
-
-      {/* Dismiss */}
       <button
         onClick={dismiss}
         aria-label="Dismiss"
-        style={{
-          background: 'none', border: 'none', color: '#5DCAA5',
-          cursor: 'pointer', padding: '4px', flexShrink: 0,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}
+        style={{ background: 'none', border: 'none', color: '#9FE1CB', cursor: 'pointer', padding: '2px', display: 'flex', lineHeight: 1 }}
       >
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
           <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
         </svg>
       </button>
