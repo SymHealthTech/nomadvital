@@ -48,68 +48,9 @@ export default function MobileStickyBar() {
 
   return (
     <>
-      {/* ── Mobile: full-width bottom bar ── */}
+      {/* ── Desktop only: always-visible floating pill at bottom-right ── */}
       <div
-        className="mobile-sticky-bar"
-        style={{
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: '56px',
-          background: '#085041',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '0 16px',
-          zIndex: 100,
-          transform: mobileVisible ? 'translateY(0)' : 'translateY(100%)',
-          transition: 'transform 0.3s ease',
-        }}
-      >
-        <span style={{ fontSize: '14px', color: '#9FE1CB', fontWeight: '500' }}>
-          Start free today
-        </span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <Link
-            href="/guest"
-            style={{
-              background: '#1D9E75',
-              color: 'white',
-              fontSize: '13px',
-              fontWeight: '600',
-              padding: '8px 18px',
-              borderRadius: '20px',
-              textDecoration: 'none',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            Get started →
-          </Link>
-          <button
-            onClick={handleMobileDismiss}
-            aria-label="Close"
-            style={{
-              background: 'none',
-              border: 'none',
-              color: '#5DCAA5',
-              cursor: 'pointer',
-              padding: '4px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      {/* ── Desktop: always-visible floating pill at bottom-right ── */}
-      <div
-        className="desktop-scroll-cta"
+        className="desktop-scroll-cta hidden md:block"
         style={{
           position: 'fixed',
           bottom: '32px',

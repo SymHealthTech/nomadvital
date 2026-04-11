@@ -29,13 +29,13 @@ export default function LoginForm() {
     if (result?.error) {
       setError('Invalid email or password. Please try again.')
     } else {
-      router.push('/dashboard')
+      router.push('/auth/redirect')
     }
   }
 
   async function handleGoogle() {
     setGoogleLoading(true)
-    await signIn('google', { callbackUrl: '/dashboard' })
+    await signIn('google', { callbackUrl: '/auth/redirect' })
   }
 
   const inputStyle = {
