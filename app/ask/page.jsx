@@ -127,7 +127,7 @@ function DailyLimitBanner() {
 }
 
 // Mic button using Web Speech API
-function MicButton({ onTranscript, disabled }) {
+function MicButton({ onTranscript, disabled, className }) {
   const [listening, setListening] = useState(false)
   const recogRef = useRef(null)
 
@@ -164,6 +164,7 @@ function MicButton({ onTranscript, disabled }) {
       onClick={toggle}
       disabled={disabled}
       title={listening ? 'Stop listening' : 'Ask by voice'}
+      className={className}
       style={{
         background: listening ? '#FEF2F2' : '#F1EFE8',
         border: `1.5px solid ${listening ? '#FECACA' : '#D3D1C7'}`,
@@ -301,7 +302,7 @@ export default function AskPage() {
   }
 
   return (
-    <div style={{ background: '#F1EFE8', minHeight: '100vh' }}>
+    <div style={{ background: '#F1EFE8', minHeight: '100vh', overflowX: 'hidden' }}>
 
       {/* ── Page hero header ── */}
       <div style={{ background: '#085041', padding: '44px 24px 40px', textAlign: 'center' }}>
@@ -334,6 +335,13 @@ export default function AskPage() {
           @media (max-width: 820px) {
             .ask-layout { flex-direction: column; }
             .ask-sidebar { width: 100%; }
+          }
+          @media (max-width: 480px) {
+            .ask-send-label { display: none; }
+            .ask-send-btn { padding: 11px 14px !important; }
+            .ask-mic-btn { padding: 0 10px !important; }
+            .ask-input { font-size: 13px !important; padding: 10px 10px !important; }
+            .ask-sample-q { max-width: 100%; word-break: break-word; white-space: normal !important; text-align: center; }
           }
         `}</style>
 
@@ -486,17 +494,19 @@ export default function AskPage() {
                     </p>
                     <button
                       onClick={fillSampleQuestion}
+                      className="ask-sample-q"
                       style={{
                         background: selectedPersona.lightColor,
                         border: `1px solid ${selectedPersona.color}40`,
                         borderRadius: '20px', padding: '8px 16px',
                         cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px',
+                        maxWidth: '100%',
                       }}
                     >
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
                         <path d="M13 5l7 7-7 7M5 12h15" stroke={selectedPersona.color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
-                      <span style={{ fontSize: '12px', color: selectedPersona.color, fontWeight: '500', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
+                      <span style={{ fontSize: '12px', color: selectedPersona.color, fontWeight: '500', fontFamily: 'var(--font-inter, Inter, sans-serif)', wordBreak: 'break-word', textAlign: 'left' }}>
                         {selectedPersona.sampleQuestion}
                       </span>
                     </button>
@@ -562,16 +572,18 @@ export default function AskPage() {
 
               {/* Input bar */}
               <div style={{ borderTop: '1px solid #E8E6E0', padding: '14px 16px', background: '#fff' }}>
-                <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '8px' }}>
+                <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '8px', minWidth: 0 }}>
                   <input
                     ref={inputRef}
                     type="text"
                     value={inputValue}
                     onChange={e => setInputValue(e.target.value)}
-                    placeholder={paywallActive ? 'Upgrade to Pro to continue...' : `Ask about ${selectedPersona.tagline.toLowerCase()}…`}
+                    placeholder={paywallActive ? 'Upgrade to continue...' : `Ask about ${selectedPersona.tagline.toLowerCase()}…`}
                     disabled={loading || paywallActive}
+                    className="ask-input"
                     style={{
-                      flex: 1, border: `1.5px solid ${inputValue && !paywallActive ? selectedPersona.color : '#D3D1C7'}`,
+                      flex: 1, minWidth: 0,
+                      border: `1.5px solid ${inputValue && !paywallActive ? selectedPersona.color : '#D3D1C7'}`,
                       borderRadius: '12px', padding: '11px 14px', fontSize: '14px',
                       fontFamily: 'var(--font-inter, Inter, sans-serif)', color: '#085041',
                       background: paywallActive ? '#F9F8F5' : '#fff', outline: 'none',
@@ -580,6 +592,7 @@ export default function AskPage() {
                   />
                   {/* Voice input button */}
                   <MicButton
+                    className="ask-mic-btn"
                     disabled={loading || paywallActive}
                     onTranscript={(t) => {
                       setInputValue(prev => prev ? `${prev} ${t}` : t)
@@ -589,20 +602,21 @@ export default function AskPage() {
                   <button
                     type="submit"
                     disabled={loading || !inputValue.trim() || paywallActive}
+                    className="ask-send-btn"
                     style={{
                       background: !inputValue.trim() || paywallActive ? '#D3D1C7' : selectedPersona.color,
                       color: '#fff', border: 'none', borderRadius: '12px',
                       padding: '11px 20px', fontSize: '14px', fontWeight: '600',
                       cursor: !inputValue.trim() || loading || paywallActive ? 'not-allowed' : 'pointer',
-                      transition: 'background 0.15s ease',
+                      transition: 'background 0.15s ease', flexShrink: 0,
                       fontFamily: 'var(--font-inter, Inter, sans-serif)', whiteSpace: 'nowrap',
                     }}
                   >
-                    {loading ? '…' : 'Ask →'}
+                    {loading ? '…' : <><span className="ask-send-label">Ask </span>→</>}
                   </button>
                 </form>
-                <p style={{ fontSize: '11px', color: '#888780', marginTop: '8px', marginBottom: 0, fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
-                  General wellness information only — not medical advice. Always consult your doctor before making dietary changes while traveling.
+                <p style={{ fontSize: '11px', color: '#888780', marginTop: '8px', marginBottom: 0, fontFamily: 'var(--font-inter, Inter, sans-serif)', lineHeight: '1.5', wordBreak: 'break-word' }}>
+                  General wellness information only — not medical advice.
                 </p>
               </div>
             </div>

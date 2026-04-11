@@ -1,7 +1,7 @@
 {
   "name": "NomadVital",
   "short_name": "NomadVital",
-  "start_url": "/",
+  "start_url": "/auth/redirect",
   "display": "standalone",
   "background_color": "#085041",
   "theme_color": "#085041",
