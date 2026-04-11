@@ -17,11 +17,16 @@ export async function POST() {
   const user = await User.findById(session.user.id).select('dodoCustomerId')
 
   if (!user?.dodoCustomerId) {
-    return NextResponse.json({ error: 'No subscription found.' }, { status: 404 })
+    return NextResponse.json({ error: 'No subscription found. Please contact support.' }, { status: 404 })
   }
 
-  // Create a customer portal session
-  const portal = await dodo.customers.customerPortal(user.dodoCustomerId)
-
-  return NextResponse.json({ portalUrl: portal.url ?? portal.link ?? portal })
+  try {
+    const portal = await dodo.customers.customerPortal.create(user.dodoCustomerId, {
+      return_url: `${process.env.NEXTAUTH_URL}/dashboard`,
+    })
+    return NextResponse.json({ portalUrl: portal.link })
+  } catch (err) {
+    console.error('Portal error:', err)
+    return NextResponse.json({ error: 'Could not open billing portal. Please try again.' }, { status: 500 })
+  }
 }

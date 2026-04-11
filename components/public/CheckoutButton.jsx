@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 
-export default function CheckoutButton({ className, style, children }) {
+export default function CheckoutButton({ billing = 'monthly', className, style, children }) {
   const { data: session, status } = useSession()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -27,7 +27,11 @@ export default function CheckoutButton({ className, style, children }) {
     setError('')
 
     try {
-      const res = await fetch('/api/dodo/checkout', { method: 'POST' })
+      const res = await fetch('/api/dodo/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ billing }),
+      })
       const data = await res.json()
 
       if (!res.ok || !data.checkoutUrl) {

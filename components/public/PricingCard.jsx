@@ -1,6 +1,6 @@
 import Link from 'next/link'
 
-export default function PricingCard({ plan, price, period, badge, features, cta, href, highlighted, microCopy, ctaNode }) {
+export default function PricingCard({ plan, price, period, subPrice, badge, features, cta, href, highlighted, microCopy, ctaNode }) {
   return (
     <div
       className={`relative rounded-2xl p-8 flex flex-col gap-6 ${
@@ -23,6 +23,11 @@ export default function PricingCard({ plan, price, period, badge, features, cta,
           <span className="text-4xl font-bold text-[#085041]">{price}</span>
           <span className="text-[#888780] text-sm mb-1">{period}</span>
         </div>
+        {subPrice && (
+          <div style={{ fontSize: '12px', color: '#1D9E75', fontWeight: '500', marginTop: '4px', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
+            {subPrice}
+          </div>
+        )}
       </div>
 
       <ul className="flex flex-col gap-3 flex-1">

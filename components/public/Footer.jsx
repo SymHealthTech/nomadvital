@@ -7,7 +7,7 @@ export default function Footer() {
         {/* Top row */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
           <span className="text-sm text-[#9FE1CB]">
-            © 2025 NomadVital &middot; nomadvital.com
+            © 2025 NomadVital &middot; a product by <span className="text-white font-medium">Sym HealthTech</span>
           </span>
           <div className="flex items-center gap-4 text-sm">
             <Link href="/privacy" className="text-[#9FE1CB] hover:text-white transition-colors">

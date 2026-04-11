@@ -16,7 +16,7 @@ export default function PaywallOverlay({ message = 'This content is available to
           href="/pricing"
           className="bg-[#1D9E75] hover:bg-[#085041] text-white font-semibold text-sm px-6 py-2.5 rounded-xl transition-colors"
         >
-          Upgrade to Pro — $12/mo
+          Upgrade to Pro — from $8.25/mo
         </Link>
         <Link href="/signup" className="text-[#888780] text-xs mt-3 hover:text-[#085041] transition-colors">
           Or start free →

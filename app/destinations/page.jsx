@@ -9,12 +9,15 @@ export const metadata = {
   description: '50+ country health guides for travelers with dietary conditions — food safety, allergens, and nutrition for every destination.',
 }
 
-// Static metadata per destination (images, flags, placeholder colors)
+// Static metadata per destination (flags, placeholder colors, descriptions)
 const DEST_META = {
-  japan:   { flag: '🇯🇵', image: '/images/destinations/japan.jpg',   placeholder: '#E1F5EE', description: 'Navigate soy sauce, gluten, and allergens in Japanese cuisine — with safe options for every dietary need.' },
-  thailand:{ flag: '🇹🇭', image: '/images/destinations/thailand.jpg', placeholder: '#FFF3E0', description: 'Manage nut allergies, diabetes, and spice sensitivity across Thai street food and restaurants.' },
-  italy:   { flag: '🇮🇹', image: '/images/destinations/italy.jpg',   placeholder: '#E8F4FD', description: "Eating gluten-free in pasta country, managing lactose intolerance, and Italy's celiac-friendly options." },
-  mexico:  { flag: '🇲🇽', image: '/images/destinations/mexico.jpg',  placeholder: '#FAECE7', description: "Water safety, traveler's diarrhea prevention, and safe eating for diabetics and vegans." },
+  japan:   { flag: '🇯🇵', placeholder: '#E1F5EE', description: 'Navigate soy sauce, gluten, and allergens in Japanese cuisine — with safe options for every dietary need.' },
+  thailand:{ flag: '🇹🇭', placeholder: '#FFF3E0', description: 'Manage nut allergies, diabetes, and spice sensitivity across Thai street food and restaurants.' },
+  italy:   { flag: '🇮🇹', placeholder: '#E8F4FD', description: "Eating gluten-free in pasta country, managing lactose intolerance, and Italy's celiac-friendly options." },
+  mexico:  { flag: '🇲🇽', placeholder: '#FAECE7', description: "Water safety, traveler's diarrhea prevention, and safe eating for diabetics and vegans." },
+  nepal:   { flag: '🇳🇵', placeholder: '#FBF0E8', description: 'High altitude nutrition, water safety, and trekking food guide for Himalayan travelers.' },
+  singapore:{ flag: '🇸🇬', placeholder: '#E8EFF8', description: 'Navigating hawker centres with allergies, diabetes, and special diets in Singapore.' },
+  india:   { flag: '🇮🇳', placeholder: '#EAF3DE', description: 'Vegetarian travel, spice sensitivity, and safe eating across India\'s diverse regions.' },
 }
 
 const CONDITION_COLORS = {
@@ -38,7 +41,7 @@ export default async function DestinationsPage() {
   try {
     await connectDB()
     const docs = await Destination.find({ isPublished: true })
-      .select('name slug conditions isFree averageRating totalRatings')
+      .select('name slug conditions isFree averageRating totalRatings image')
       .sort({ isFree: -1, name: 1 })
     destinations = JSON.parse(JSON.stringify(docs))
   } catch {
@@ -87,9 +90,9 @@ export default async function DestinationsPage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
             </svg>
             <span>
-              <strong style={{ color: '#085041' }}>2 guides are free.</strong> Unlock all destinations with{' '}
+              <strong style={{ color: '#085041' }}>5 guides are free.</strong> Unlock all destinations with{' '}
               <Link href="/pricing" style={{ color: '#1D9E75', textDecoration: 'underline', fontWeight: '600' }}>
-                Pro — $12/mo
+                Pro — from $8.25/mo
               </Link>
             </span>
           </div>
@@ -125,17 +128,17 @@ export default async function DestinationsPage() {
                   >
                     {/* Image */}
                     <div style={{ position: 'relative', height: '150px', width: '100%', backgroundColor: meta.placeholder || '#F1EFE8' }}>
-                      {meta.image && (
+                      {dest.image && (
                         <Image
-                          src={meta.image}
+                          src={dest.image}
                           alt={`${dest.name} travel and food guide`}
                           fill
                           style={{ objectFit: 'cover' }}
                           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                         />
                       )}
-                      {/* Free badge */}
-                      {dest.isFree && (
+                      {/* Free badge — only show to non-pro users */}
+                      {dest.isFree && !isPro && (
                         <div style={{
                           position: 'absolute',
                           top: '10px',
@@ -298,10 +301,10 @@ export default async function DestinationsPage() {
                 fontFamily: 'var(--font-inter, Inter, sans-serif)',
               }}
             >
-              Start 7-day free trial
+              See plans — from $8.25/mo
             </Link>
             <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', marginTop: '8px', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
-              No charge until day 8 · Cancel anytime
+              7-day free trial · No charge until day 8 · Cancel anytime
             </p>
           </div>
         )}

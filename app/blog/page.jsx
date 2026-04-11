@@ -8,19 +8,12 @@ export const metadata = {
   description: 'Research-backed guides for travelers managing dietary conditions abroad — diabetes, gluten-free, allergies, water safety, and more.',
 }
 
-// Map blog slugs to static images
-const BLOG_IMAGES = {
-  'diabetics-foods-avoid-travel':       { image: '/images/blog/diabetes-travel.jpg',   placeholder: '#E1F5EE' },
-  'gluten-free-japan-guide':            { image: '/images/blog/gluten-free-japan.jpg',  placeholder: '#FFF3E0' },
-  'water-safety-international-travel':  { image: '/images/blog/water-safety.jpg',       placeholder: '#E8F4FD' },
-}
-
 export default async function BlogPage() {
   let posts = []
   try {
     await connectDB()
     const docs = await BlogPost.find({ isPublished: true })
-      .select('title slug tag summary readTime createdAt viewCount')
+      .select('title slug tag summary readTime createdAt viewCount image')
       .sort({ createdAt: -1 })
     posts = JSON.parse(JSON.stringify(docs))
   } catch {
@@ -55,7 +48,6 @@ export default async function BlogPage() {
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' }}>
             {posts.map((post) => {
-              const imgMeta = BLOG_IMAGES[post.slug] || { image: null, placeholder: '#F1EFE8' }
               return (
                 <Link
                   key={post.slug}
@@ -75,10 +67,10 @@ export default async function BlogPage() {
                     transition: 'box-shadow 0.15s',
                   }}>
                     {/* Cover image */}
-                    <div style={{ position: 'relative', height: '160px', width: '100%', backgroundColor: imgMeta.placeholder, flexShrink: 0 }}>
-                      {imgMeta.image && (
+                    <div style={{ position: 'relative', height: '160px', width: '100%', backgroundColor: '#F1EFE8', flexShrink: 0 }}>
+                      {post.image && (
                         <Image
-                          src={imgMeta.image}
+                          src={post.image}
                           alt={post.title}
                           fill
                           style={{ objectFit: 'cover' }}

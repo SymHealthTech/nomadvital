@@ -219,7 +219,7 @@ export default function Navbar() {
               <Link href="/login" className="text-sm font-medium hover:text-[#5DCAA5] transition-colors">
                 Sign in
               </Link>
-              <Link href="/signup" className="bg-[#1D9E75] hover:bg-[#0F6E56] text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+              <Link href="/guest" className="bg-[#1D9E75] hover:bg-[#0F6E56] text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
                 Start free
               </Link>
             </>
@@ -229,15 +229,57 @@ export default function Navbar() {
         {/* Mobile: right side */}
         <div className="md:hidden flex items-center gap-3">
           {isLoggedIn ? (
-            <Link href="/dashboard">
-              <UserAvatar name={user?.name} plan={user?.plan} />
-            </Link>
+            <div style={{ position: 'relative' }}>
+              <button
+                onClick={() => setUserMenuOpen(!userMenuOpen)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' }}
+              >
+                <UserAvatar name={user?.name} plan={user?.plan} />
+              </button>
+              {userMenuOpen && (
+                <div style={{
+                  position: 'absolute', top: 'calc(100% + 8px)', right: 0,
+                  background: '#fff', border: '0.5px solid #D3D1C7',
+                  borderRadius: '10px', boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
+                  minWidth: '180px', padding: '6px', zIndex: 100,
+                }}>
+                  <div style={{ padding: '8px 12px 6px', borderBottom: '1px solid #F1EFE8', marginBottom: '4px' }}>
+                    <div style={{ fontSize: '13px', fontWeight: '600', color: '#085041', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
+                      {user?.name?.split(' ')[0] || 'Account'}
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#888780', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
+                      {user?.plan === 'pro' ? '✦ Pro plan' : 'Free plan'}
+                    </div>
+                  </div>
+                  {[
+                    { href: '/dashboard', label: 'Dashboard' },
+                    { href: '/ask', label: 'AI Advisor' },
+                    { href: '/pricing', label: user?.plan === 'pro' ? 'Manage subscription' : 'Upgrade to Pro' },
+                  ].map(item => (
+                    <Link key={item.href} href={item.href} style={{ textDecoration: 'none' }} onClick={() => setUserMenuOpen(false)}>
+                      <div style={{ padding: '8px 12px', borderRadius: '7px', fontSize: '13px', color: '#085041', fontFamily: 'var(--font-inter, Inter, sans-serif)', cursor: 'pointer' }}
+                        onTouchStart={e => e.currentTarget.style.background = '#E1F5EE'}
+                        onTouchEnd={e => e.currentTarget.style.background = 'transparent'}
+                      >
+                        {item.label}
+                      </div>
+                    </Link>
+                  ))}
+                  <button
+                    onClick={() => { setUserMenuOpen(false); signOut({ callbackUrl: '/' }) }}
+                    style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none', padding: '8px 12px', borderRadius: '7px', fontSize: '13px', color: '#B91C1C', cursor: 'pointer', fontFamily: 'var(--font-inter, Inter, sans-serif)', marginTop: '2px' }}
+                  >
+                    Sign out
+                  </button>
+                </div>
+              )}
+            </div>
           ) : (
-            <Link href="/signup" style={{ background: '#1D9E75', color: 'white', fontSize: '12px', fontWeight: '600', padding: '6px 14px', borderRadius: '20px', textDecoration: 'none', whiteSpace: 'nowrap' }}>
+            <Link href="/guest" style={{ background: '#1D9E75', color: 'white', fontSize: '12px', fontWeight: '600', padding: '6px 14px', borderRadius: '20px', textDecoration: 'none', whiteSpace: 'nowrap' }}>
               Start free
             </Link>
           )}
-          <button className="text-white" onClick={() => setMenuOpen(!menuOpen)} aria-label="Toggle menu">
+          <button className="text-white" onClick={() => { setMenuOpen(!menuOpen); setUserMenuOpen(false) }} aria-label="Toggle menu">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               {menuOpen
                 ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -301,7 +343,7 @@ export default function Navbar() {
           ) : (
             <>
               <Link href="/login" onClick={() => setMenuOpen(false)}>Sign in</Link>
-              <Link href="/signup" onClick={() => setMenuOpen(false)} className="bg-[#1D9E75] text-white text-center px-4 py-2 rounded-lg font-semibold">
+              <Link href="/guest" onClick={() => setMenuOpen(false)} className="bg-[#1D9E75] text-white text-center px-4 py-2 rounded-lg font-semibold">
                 Start free
               </Link>
             </>

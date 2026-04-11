@@ -1,10 +1,10 @@
+export const dynamic = 'force-dynamic'
+
 import Link from 'next/link'
 import { travelerPersonas, getPersonaBySlug } from '@/lib/travelerPersonas'
 import { notFound } from 'next/navigation'
-
-export async function generateStaticParams() {
-  return travelerPersonas.map(p => ({ type: p.slug }))
-}
+import { auth } from '@/lib/auth'
+import PricingSection from '@/components/public/PricingSection'
 
 export async function generateMetadata({ params }) {
   const persona = getPersonaBySlug(params.type)
@@ -49,41 +49,51 @@ const aiDemoAnswers = {
 // Persona-specific destination cards
 const personaDestinations = {
   'general-traveler': [
-    { name: 'Thailand', caption: 'Street food safety guide', img: '/images/destinations/thailand.jpg' },
-    { name: 'Japan', caption: 'Allergen awareness guide', img: '/images/destinations/japan.jpg' },
-    { name: 'Mexico', caption: 'Water & food safety guide', img: '/images/destinations/mexico.jpg' },
-    { name: 'Italy', caption: 'Gluten-free traveler guide', img: '/images/destinations/italy.jpg' },
+    { name: 'Thailand', caption: 'Street food safety guide', img: 'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=400&q=75' },
+    { name: 'Japan', caption: 'Allergen awareness guide', img: 'https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=400&q=75' },
+    { name: 'Mexico', caption: 'Water & food safety guide', img: 'https://images.unsplash.com/photo-1518638150340-f706e86654de?w=400&q=75' },
+    { name: 'Italy', caption: 'Gluten-free traveler guide', img: 'https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?w=400&q=75' },
   ],
   'marathon-runners': [
-    { name: 'Japan', caption: 'Tokyo Marathon — carb loading guide', img: '/images/destinations/japan.jpg' },
-    { name: 'Germany', caption: 'Berlin Marathon — race nutrition guide', img: '/images/destinations/germany.jpg' },
-    { name: 'Thailand', caption: 'Race-day GI safety in tropical heat', img: '/images/destinations/thailand.jpg' },
-    { name: 'Italy', caption: 'Rome Marathon — pasta loading guide', img: '/images/destinations/italy.jpg' },
+    { name: 'Japan', caption: 'Tokyo Marathon — carb loading guide', img: 'https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=400&q=75' },
+    { name: 'Germany', caption: 'Berlin Marathon — race nutrition guide', img: 'https://images.unsplash.com/photo-1560969184-10fe8719e047?w=400&q=75' },
+    { name: 'Thailand', caption: 'Race-day GI safety in tropical heat', img: 'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=400&q=75' },
+    { name: 'Italy', caption: 'Rome Marathon — pasta loading guide', img: 'https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?w=400&q=75' },
   ],
   'ironman-triathlete': [
-    { name: 'Malaysia', caption: 'Ironman Malaysia — heat & electrolyte guide', img: '/images/destinations/malaysia.jpg' },
-    { name: 'Japan', caption: 'Ironman Japan — race-day nutrition guide', img: '/images/destinations/japan.jpg' },
-    { name: 'Italy', caption: 'Ironman Italy — carb & recovery guide', img: '/images/destinations/italy.jpg' },
-    { name: 'Thailand', caption: 'Triathlon nutrition in tropical conditions', img: '/images/destinations/thailand.jpg' },
+    { name: 'Malaysia', caption: 'Ironman Malaysia — heat & electrolyte guide', img: 'https://images.unsplash.com/photo-1596422846543-75c6fc197f07?w=400&q=75' },
+    { name: 'Japan', caption: 'Ironman Japan — race-day nutrition guide', img: 'https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=400&q=75' },
+    { name: 'Italy', caption: 'Ironman Italy — carb & recovery guide', img: 'https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?w=400&q=75' },
+    { name: 'Thailand', caption: 'Triathlon nutrition in tropical conditions', img: 'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=400&q=75' },
   ],
   'mountaineers-trekkers': [
-    { name: 'Nepal', caption: 'Everest Base Camp — altitude nutrition', img: '/images/destinations/nepal.jpg' },
-    { name: 'Peru', caption: 'Machu Picchu & Inca Trail food guide', img: '/images/destinations/peru.jpg' },
-    { name: 'Tanzania', caption: 'Kilimanjaro — acclimatisation nutrition', img: '/images/destinations/tanzania.jpg' },
-    { name: 'Switzerland', caption: 'Alps trekking nutrition guide', img: '/images/destinations/switzerland.jpg' },
+    { name: 'Nepal', caption: 'Everest Base Camp — altitude nutrition', img: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=400&q=75' },
+    { name: 'Peru', caption: 'Machu Picchu & Inca Trail food guide', img: 'https://images.unsplash.com/photo-1587595431973-160d0d94add1?w=400&q=75' },
+    { name: 'Tanzania', caption: 'Kilimanjaro — acclimatisation nutrition', img: 'https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=400&q=75' },
+    { name: 'Switzerland', caption: 'Alps trekking nutrition guide', img: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&q=75' },
   ],
   'business-travelers': [
-    { name: 'Singapore', caption: 'Business dining guide — healthy hawker picks', img: '/images/destinations/singapore.jpg' },
-    { name: 'Japan', caption: 'Tokyo business traveler nutrition guide', img: '/images/destinations/japan.jpg' },
-    { name: 'Germany', caption: 'Frankfurt conference nutrition guide', img: '/images/destinations/germany.jpg' },
-    { name: 'Thailand', caption: 'Bangkok business trip food guide', img: '/images/destinations/thailand.jpg' },
+    { name: 'Singapore', caption: 'Business dining guide — healthy hawker picks', img: 'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=400&q=75' },
+    { name: 'Japan', caption: 'Tokyo business traveler nutrition guide', img: 'https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=400&q=75' },
+    { name: 'Germany', caption: 'Frankfurt conference nutrition guide', img: 'https://images.unsplash.com/photo-1560969184-10fe8719e047?w=400&q=75' },
+    { name: 'Thailand', caption: 'Bangkok business trip food guide', img: 'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=400&q=75' },
   ],
   'wellness-travelers': [
-    { name: 'India', caption: 'Rishikesh & Goa — sattvic & Ayurvedic guide', img: '/images/destinations/india.jpg' },
-    { name: 'Thailand', caption: 'Koh Samui retreat nutrition guide', img: '/images/destinations/thailand.jpg' },
-    { name: 'Bali', caption: 'Plant-based & wellness eating guide', img: '/images/destinations/bali.jpg' },
-    { name: 'Japan', caption: 'Shojin ryori — Buddhist wellness food', img: '/images/destinations/japan.jpg' },
+    { name: 'India', caption: 'Rishikesh & Goa — sattvic & Ayurvedic guide', img: 'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=400&q=75' },
+    { name: 'Thailand', caption: 'Koh Samui retreat nutrition guide', img: 'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=400&q=75' },
+    { name: 'Bali', caption: 'Plant-based & wellness eating guide', img: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=400&q=75' },
+    { name: 'Japan', caption: 'Shojin ryori — Buddhist wellness food', img: 'https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=400&q=75' },
   ],
+}
+
+// Hero background images per persona
+const heroImages = {
+  'general-traveler':    'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1400&q=80',
+  'marathon-runners':    'https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=1400&q=80',
+  'ironman-triathlete':  'https://images.unsplash.com/photo-1530549387789-4c1017266635?w=1400&q=80',
+  'mountaineers-trekkers': 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1400&q=80',
+  'business-travelers':  'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1400&q=80',
+  'wellness-travelers':  'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=1400&q=80',
 }
 
 // Persona benefit cards
@@ -138,7 +148,11 @@ function darken(hex, amount = 0.15) {
   return `rgb(${r},${g},${b})`
 }
 
-export default function PersonaLandingPage({ params }) {
+export default async function PersonaLandingPage({ params }) {
+  const session = await auth()
+  const isPro = session?.user?.plan === 'pro'
+  const isLoggedIn = !!session
+
   const persona = getPersonaBySlug(params.type)
   if (!persona) notFound()
 
@@ -147,12 +161,28 @@ export default function PersonaLandingPage({ params }) {
   const benefits = personaBenefits[persona.slug] || personaBenefits['general-traveler']
   const proLine = proFeatureLine[persona.slug] || '50+ destination guides'
   const trustBg = darken(persona.color)
+  const heroBg = heroImages[persona.slug]
 
   return (
     <>
       {/* SECTION 1 — HERO */}
-      <section style={{ background: persona.color, color: '#fff', padding: '60px 24px 52px' }}>
-        <div style={{ maxWidth: '720px', margin: '0 auto', textAlign: 'center' }}>
+      <section style={{ position: 'relative', color: '#fff', padding: '80px 24px 68px', overflow: 'hidden', background: persona.color }}>
+        {/* Background image */}
+        {heroBg && (
+          <div style={{
+            position: 'absolute', inset: 0,
+            backgroundImage: `url(${heroBg})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            opacity: 0.55,
+          }} />
+        )}
+        {/* Gradient overlay — keeps text readable while image shows through */}
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: `linear-gradient(135deg, ${persona.color}CC 0%, ${persona.color}99 50%, ${persona.color}66 100%)`,
+        }} />
+        <div style={{ position: 'relative', maxWidth: '720px', margin: '0 auto', textAlign: 'center' }}>
           <div style={{
             display: 'inline-block',
             background: 'rgba(255,255,255,0.15)',
@@ -188,35 +218,31 @@ export default function PersonaLandingPage({ params }) {
             {persona.heroSub}
           </p>
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link href="/signup" style={{
-              background: '#fff',
-              color: persona.color,
-              fontWeight: '700',
-              fontSize: '14px',
-              padding: '12px 24px',
-              borderRadius: '10px',
-              textDecoration: 'none',
-              fontFamily: 'var(--font-inter, Inter, sans-serif)',
-            }}>
-              Start free →
-            </Link>
-            <Link href="#how-it-works" style={{
-              background: 'transparent',
-              color: '#fff',
-              fontWeight: '600',
-              fontSize: '14px',
-              padding: '12px 24px',
-              borderRadius: '10px',
-              border: '1.5px solid rgba(255,255,255,0.6)',
-              textDecoration: 'none',
-              fontFamily: 'var(--font-inter, Inter, sans-serif)',
-            }}>
-              See how it works
-            </Link>
+            {isPro ? (
+              <>
+                <Link href="/ask" style={{ background: '#fff', color: persona.color, fontWeight: '700', fontSize: '14px', padding: '12px 24px', borderRadius: '10px', textDecoration: 'none', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
+                  Ask AI Advisor →
+                </Link>
+                <Link href="/destinations" style={{ background: 'transparent', color: '#fff', fontWeight: '600', fontSize: '14px', padding: '12px 24px', borderRadius: '10px', border: '1.5px solid rgba(255,255,255,0.6)', textDecoration: 'none', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
+                  View destinations
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link href={isLoggedIn ? '/pricing' : '/signup'} style={{ background: '#fff', color: persona.color, fontWeight: '700', fontSize: '14px', padding: '12px 24px', borderRadius: '10px', textDecoration: 'none', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
+                  {isLoggedIn ? 'Upgrade to Pro →' : 'Start free →'}
+                </Link>
+                <Link href="#how-it-works" style={{ background: 'transparent', color: '#fff', fontWeight: '600', fontSize: '14px', padding: '12px 24px', borderRadius: '10px', border: '1.5px solid rgba(255,255,255,0.6)', textDecoration: 'none', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
+                  See how it works
+                </Link>
+              </>
+            )}
           </div>
-          <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.65)', marginTop: '12px', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
-            Cancel anytime · No card needed
-          </p>
+          {!isPro && (
+            <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.65)', marginTop: '12px', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
+              Cancel anytime · No card needed
+            </p>
+          )}
         </div>
       </section>
 
@@ -446,24 +472,22 @@ export default function PersonaLandingPage({ params }) {
           </div>
 
           {/* CTA row */}
-          <div style={{ textAlign: 'center', marginTop: '20px' }}>
-            <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '13px', marginBottom: '16px', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
-              Sign up free to ask your own questions — 3 free per day, unlimited with Pro.
-            </p>
-            <Link href="/signup" style={{
-              background: '#fff',
-              color: persona.color,
-              fontWeight: '700',
-              fontSize: '14px',
-              padding: '12px 28px',
-              borderRadius: '10px',
-              textDecoration: 'none',
-              fontFamily: 'var(--font-inter, Inter, sans-serif)',
-              display: 'inline-block',
-            }}>
-              Try it free →
-            </Link>
-          </div>
+          {isPro ? (
+            <div style={{ textAlign: 'center', marginTop: '20px' }}>
+              <Link href="/ask" style={{ background: '#fff', color: persona.color, fontWeight: '700', fontSize: '14px', padding: '12px 28px', borderRadius: '10px', textDecoration: 'none', fontFamily: 'var(--font-inter, Inter, sans-serif)', display: 'inline-block' }}>
+                Ask AI Advisor →
+              </Link>
+            </div>
+          ) : (
+            <div style={{ textAlign: 'center', marginTop: '20px' }}>
+              <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '13px', marginBottom: '16px', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
+                {isLoggedIn ? '3 free questions per day — ask your own question now.' : 'Try free — no account needed. 3 questions per day, unlimited with Pro.'}
+              </p>
+              <Link href={isLoggedIn ? '/ask' : '/guest'} style={{ background: '#fff', color: persona.color, fontWeight: '700', fontSize: '14px', padding: '12px 28px', borderRadius: '10px', textDecoration: 'none', fontFamily: 'var(--font-inter, Inter, sans-serif)', display: 'inline-block' }}>
+                {isLoggedIn ? 'Ask now →' : 'Try it free →'}
+              </Link>
+            </div>
+          )}
         </div>
       </section>
 
@@ -563,72 +587,8 @@ export default function PersonaLandingPage({ params }) {
         </div>
       </section>
 
-      {/* SECTION 7 — PRICING */}
-      <section style={{ background: '#F1EFE8', padding: '60px 24px' }}>
-        <div style={{ maxWidth: '680px', margin: '0 auto' }}>
-          <h2 style={{
-            fontFamily: 'var(--font-playfair, Georgia, serif)',
-            fontSize: 'clamp(1.4rem, 3vw, 2rem)',
-            fontWeight: '600',
-            color: '#085041',
-            textAlign: 'center',
-            marginBottom: '8px',
-          }}>
-            Simple, transparent pricing
-          </h2>
-          <p style={{ textAlign: 'center', color: '#5F5E5A', fontSize: '14px', marginBottom: '28px', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
-            Start free — no credit card needed.
-          </p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px' }}>
-            {/* Free card */}
-            <div style={{ background: '#fff', borderRadius: '16px', padding: '28px', border: '1px solid #D3D1C7' }}>
-              <div style={{ fontSize: '11px', fontWeight: '700', color: '#888780', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '8px', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>FREE</div>
-              <div style={{ display: 'flex', alignItems: 'flex-end', gap: '4px', marginBottom: '20px' }}>
-                <span style={{ fontSize: '36px', fontWeight: '700', color: '#085041' }}>$0</span>
-                <span style={{ color: '#888780', fontSize: '13px', marginBottom: '4px' }}>/mo</span>
-              </div>
-              <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {['3 AI health questions per day', '5 destination guides', 'Basic travel health tips', 'No credit card required'].map((f, i) => (
-                  <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '13px', color: '#5F5E5A', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0, marginTop: '2px' }}>
-                      <path d="M20 6L9 17l-5-5" stroke="#1D9E75" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <Link href="/signup" style={{ display: 'block', textAlign: 'center', background: '#F1EFE8', color: '#085041', fontWeight: '600', fontSize: '13px', padding: '11px', borderRadius: '10px', textDecoration: 'none', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
-                Start for free
-              </Link>
-              <p style={{ fontSize: '11px', color: '#888780', textAlign: 'center', marginTop: '6px', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>No card required · Free forever</p>
-            </div>
-
-            {/* Pro card */}
-            <div style={{ background: '#fff', borderRadius: '16px', padding: '28px', border: `2px solid #1D9E75`, position: 'relative', boxShadow: '0 4px 16px rgba(29,158,117,0.12)' }}>
-              <div style={{ position: 'absolute', top: '-12px', left: '50%', transform: 'translateX(-50%)', background: '#1D9E75', color: '#fff', fontSize: '11px', fontWeight: '700', padding: '3px 14px', borderRadius: '20px', whiteSpace: 'nowrap' }}>Most popular</div>
-              <div style={{ fontSize: '11px', fontWeight: '700', color: '#888780', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '8px', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>PRO</div>
-              <div style={{ display: 'flex', alignItems: 'flex-end', gap: '4px', marginBottom: '20px' }}>
-                <span style={{ fontSize: '36px', fontWeight: '700', color: '#085041' }}>$12</span>
-                <span style={{ color: '#888780', fontSize: '13px', marginBottom: '4px' }}>/mo</span>
-              </div>
-              <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {['Unlimited AI health questions', '50+ destination guides', 'Diet travel planner', 'PDF meal plan downloads', 'Priority email support', proLine, 'Cancel anytime'].map((f, i) => (
-                  <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '13px', color: '#5F5E5A', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0, marginTop: '2px' }}>
-                      <path d="M20 6L9 17l-5-5" stroke="#1D9E75" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <Link href="/signup?plan=pro" style={{ display: 'block', textAlign: 'center', background: '#1D9E75', color: '#fff', fontWeight: '600', fontSize: '13px', padding: '11px', borderRadius: '10px', textDecoration: 'none', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
-                Start Pro free trial
-              </Link>
-              <p style={{ fontSize: '11px', color: '#888780', textAlign: 'center', marginTop: '6px', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>No charge until day 8 · Cancel anytime</p>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* SECTION 7 — PRICING (hidden for Pro users) */}
+      {!isPro && <PricingSection />}
 
     </>
   )

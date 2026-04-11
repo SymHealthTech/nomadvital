@@ -15,10 +15,24 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { message, personaId } = await request.json()
+  const { message, personaId, history } = await request.json()
 
   if (!message || typeof message !== 'string' || message.trim().length === 0) {
     return NextResponse.json({ error: 'Message is required.' }, { status: 400 })
+  }
+
+  // Guest users have no DB record — allow questions without rate-limit tracking
+  if (session.user.isGuest) {
+    let reply
+    try {
+      reply = await callClaude(message.trim(), personaId || 'general', history || [])
+    } catch {
+      return NextResponse.json(
+        { error: 'AI service unavailable. Please try again.' },
+        { status: 503 }
+      )
+    }
+    return NextResponse.json({ reply })
   }
 
   await connectDB()
@@ -57,7 +71,7 @@ export async function POST(request) {
   // Call Claude first — don't charge the user for a failed API call
   let reply
   try {
-    reply = await callClaude(message.trim(), personaId || 'general')
+    reply = await callClaude(message.trim(), personaId || 'general', history || [])
   } catch {
     return NextResponse.json(
       { error: 'AI service unavailable. Please try again.' },

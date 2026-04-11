@@ -1,33 +1,42 @@
 'use client'
 
+import Link from 'next/link'
+import { useState } from 'react'
+import { useSession } from 'next-auth/react'
 import PricingCard from './PricingCard'
 import CheckoutButton from './CheckoutButton'
 
-const plans = [
-  {
-    plan: 'Free',
-    price: '$0',
-    period: '/mo',
-    badge: null,
-    highlighted: false,
-    cta: 'Start for free',
-    href: '/signup',
-    microCopy: 'No card required · Free forever',
-    features: [
-      '3 AI health questions per day',
-      '5 destination guides',
-      'Basic travel health tips',
-      'No credit card required',
-    ],
-  },
-  {
+const MONTHLY_PRICE = 12   // $12/mo
+const ANNUAL_PRICE  = 99   // $99/yr
+const ANNUAL_PER_MO = (ANNUAL_PRICE / 12).toFixed(2)  // "8.25"
+const ANNUAL_SAVINGS_PCT = Math.round((1 - ANNUAL_PRICE / (MONTHLY_PRICE * 12)) * 100) // 31
+
+const freePlan = {
+  plan: 'Free',
+  price: '$0',
+  period: '/mo',
+  badge: null,
+  highlighted: false,
+  cta: 'Start for free',
+  href: '/guest',
+  microCopy: 'No card required · Free forever',
+  features: [
+    '3 AI health questions per day',
+    '5 destination guides',
+    'Basic travel health tips',
+    'No credit card required',
+  ],
+}
+
+function proPlan(billing) {
+  const isAnnual = billing === 'annual'
+  return {
     plan: 'Pro',
-    price: '$12',
-    period: '/mo',
+    price: isAnnual ? `$${ANNUAL_PRICE}` : `$${MONTHLY_PRICE}`,
+    period: isAnnual ? '/yr' : '/mo',
+    subPrice: isAnnual ? `~$${ANNUAL_PER_MO}/mo` : `$${ANNUAL_PRICE}/yr if billed annually`,
     badge: 'Most popular',
     highlighted: true,
-    cta: 'Start Pro free trial',
-    href: '/signup?plan=pro',
     microCopy: 'No charge until day 8 · Cancel anytime',
     features: [
       'Unlimited AI health questions',
@@ -37,8 +46,8 @@ const plans = [
       'Priority email support',
       'Cancel anytime',
     ],
-  },
-]
+  }
+}
 
 const securityBadges = [
   {
@@ -81,44 +90,130 @@ const securityBadges = [
 ]
 
 export default function PricingSection() {
+  const { data: session } = useSession()
+  const isPro = session?.user?.plan === 'pro'
+  const [billing, setBilling] = useState('annual')
+
+  const pro = proPlan(billing)
+
   return (
     <section id="pricing" className="bg-[#F1EFE8] py-16 md:py-24">
       <div className="max-w-4xl mx-auto px-4">
-        <div className="text-center mb-12">
+        <div className="text-center mb-10">
           <h2 className="font-playfair text-3xl md:text-4xl text-[#085041] mb-4" style={{ letterSpacing: '0.01em', lineHeight: '1.3', fontWeight: '600' }}>
             Simple, transparent pricing
           </h2>
           <p className="text-[#5F5E5A] text-lg max-w-xl mx-auto">
-            Start free — no credit card needed. Upgrade to Pro when you need unlimited access.
+            {isPro
+              ? "You're on Pro — enjoy unlimited access to all features."
+              : 'Start free — no credit card needed. Upgrade to Pro when you need unlimited access.'}
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
-          {plans.map((p) => (
-            <PricingCard
-              key={p.plan}
-              {...p}
-              ctaNode={p.plan === 'Pro' ? (
-                <CheckoutButton
-                  className="btn-primary text-center font-semibold text-sm py-3 rounded-xl w-full bg-[#1D9E75] text-white hover:bg-[#0F6E56] transition-colors"
-                  style={{ display: 'block', cursor: 'pointer', border: 'none' }}
-                >
-                  Start 7-day free trial
-                </CheckoutButton>
-              ) : undefined}
-            />
-          ))}
-        </div>
-
-        {/* Security badges — Improvement 8B */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '20px', flexWrap: 'wrap' }}>
-          {securityBadges.map(badge => (
-            <div key={badge.text} style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', color: '#888780' }}>
-              {badge.icon}
-              <span>{badge.text}</span>
+        {isPro ? (
+          <div className="max-w-md mx-auto bg-white rounded-2xl border-2 border-[#1D9E75] shadow-lg p-8 text-center">
+            <div style={{ width: '48px', height: '48px', background: '#E1F5EE', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+              <svg width="22" height="22" fill="none" stroke="#1D9E75" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
+              </svg>
             </div>
-          ))}
-        </div>
+            <div className="text-xs font-bold text-[#1D9E75] tracking-widest uppercase mb-2">Pro Plan Active</div>
+            <p className="text-[#5F5E5A] text-sm mb-6">Unlimited AI questions, 50+ destination guides, diet planner — all yours.</p>
+            <Link href="/dashboard" className="block text-center bg-[#1D9E75] text-white font-semibold text-sm py-3 rounded-xl hover:bg-[#0F6E56] transition-colors">
+              Go to Dashboard →
+            </Link>
+          </div>
+        ) : (
+          <>
+            {/* Billing toggle */}
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '32px' }}>
+              <div style={{
+                display: 'inline-flex',
+                background: '#E8E5DC',
+                borderRadius: '999px',
+                padding: '4px',
+                gap: '2px',
+              }}>
+                <button
+                  onClick={() => setBilling('monthly')}
+                  style={{
+                    padding: '7px 20px',
+                    borderRadius: '999px',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontSize: '13px',
+                    fontWeight: '600',
+                    fontFamily: 'var(--font-inter, Inter, sans-serif)',
+                    transition: 'all 0.15s ease',
+                    background: billing === 'monthly' ? '#fff' : 'transparent',
+                    color: billing === 'monthly' ? '#085041' : '#888780',
+                    boxShadow: billing === 'monthly' ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
+                  }}
+                >
+                  Monthly
+                </button>
+                <button
+                  onClick={() => setBilling('annual')}
+                  style={{
+                    padding: '7px 20px',
+                    borderRadius: '999px',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontSize: '13px',
+                    fontWeight: '600',
+                    fontFamily: 'var(--font-inter, Inter, sans-serif)',
+                    transition: 'all 0.15s ease',
+                    background: billing === 'annual' ? '#fff' : 'transparent',
+                    color: billing === 'annual' ? '#085041' : '#888780',
+                    boxShadow: billing === 'annual' ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  Annual
+                  <span style={{
+                    background: billing === 'annual' ? '#1D9E75' : '#D3D1C7',
+                    color: '#fff',
+                    fontSize: '10px',
+                    fontWeight: '700',
+                    padding: '2px 7px',
+                    borderRadius: '999px',
+                    letterSpacing: '0.3px',
+                    transition: 'background 0.15s ease',
+                  }}>
+                    SAVE {ANNUAL_SAVINGS_PCT}%
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+              <PricingCard {...freePlan} />
+              <PricingCard
+                {...pro}
+                ctaNode={
+                  <CheckoutButton
+                    billing={billing}
+                    className="btn-primary text-center font-semibold text-sm py-3 px-6 rounded-xl w-full bg-[#1D9E75] text-white hover:bg-[#0F6E56] transition-colors"
+                    style={{ display: 'block', cursor: 'pointer', border: 'none' }}
+                  >
+                    Start 7-day free trial
+                  </CheckoutButton>
+                }
+              />
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '20px', flexWrap: 'wrap' }}>
+              {securityBadges.map(badge => (
+                <div key={badge.text} style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', color: '#888780' }}>
+                  {badge.icon}
+                  <span>{badge.text}</span>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
     </section>
   )

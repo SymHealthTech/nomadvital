@@ -1,4 +1,11 @@
-export default function ChatDemo() {
+import Link from 'next/link'
+import { auth } from '@/lib/auth'
+
+export default async function ChatDemo() {
+  const session = await auth()
+  const isPro = session?.user?.plan === 'pro'
+  const isLoggedIn = !!session
+
   return (
     <section className="bg-[#1D9E75] py-16 md:py-24">
       <div className="max-w-4xl mx-auto px-4">
@@ -96,9 +103,19 @@ export default function ChatDemo() {
           </div>
         </div>
 
-        <p className="text-center text-[#E1F5EE] text-sm mt-4">
-          Sign up free to ask your own questions — 3 free per day, unlimited with Pro.
-        </p>
+        {isPro ? (
+          <p className="text-center text-[#E1F5EE] text-sm mt-4">
+            You have unlimited questions — <Link href="/ask" style={{ color: '#fff', fontWeight: '600', textDecoration: 'underline' }}>Ask the AI Advisor →</Link>
+          </p>
+        ) : isLoggedIn ? (
+          <p className="text-center text-[#E1F5EE] text-sm mt-4">
+            3 free questions per day — <Link href="/ask" style={{ color: '#fff', fontWeight: '600', textDecoration: 'underline' }}>Ask yours now →</Link>
+          </p>
+        ) : (
+          <p className="text-center text-[#E1F5EE] text-sm mt-4">
+            Try free — no account needed. <Link href="/guest" style={{ color: '#fff', fontWeight: '600', textDecoration: 'underline' }}>Start asking →</Link>
+          </p>
+        )}
       </div>
     </section>
   )

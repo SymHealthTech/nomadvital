@@ -4,12 +4,6 @@ import { notFound } from 'next/navigation'
 import connectDB from '@/lib/mongodb'
 import BlogPost from '@/models/BlogPost'
 
-const BLOG_IMAGES = {
-  'diabetics-foods-avoid-travel':       { image: '/images/blog/diabetes-travel.jpg',   placeholder: '#E1F5EE' },
-  'gluten-free-japan-guide':            { image: '/images/blog/gluten-free-japan.jpg',  placeholder: '#FFF3E0' },
-  'water-safety-international-travel':  { image: '/images/blog/water-safety.jpg',       placeholder: '#E8F4FD' },
-}
-
 // Related destinations per article tag
 const RELATED_DESTINATIONS = {
   'diabetics-foods-avoid-travel': [
@@ -23,8 +17,35 @@ const RELATED_DESTINATIONS = {
   ],
   'water-safety-international-travel': [
     { name: 'Thailand', slug: 'thailand', flag: '🇹🇭' },
-    { name: 'Mexico', slug: 'mexico', flag: '🇲🇽' },
+    { name: 'Nepal', slug: 'nepal', flag: '🇳🇵' },
+    { name: 'India', slug: 'india', flag: '🇮🇳' },
+  ],
+  'nut-allergy-southeast-asia-guide': [
+    { name: 'Thailand', slug: 'thailand', flag: '🇹🇭' },
+    { name: 'Singapore', slug: 'singapore', flag: '🇸🇬' },
+  ],
+  'marathon-runner-international-race-nutrition': [
     { name: 'Japan', slug: 'japan', flag: '🇯🇵' },
+    { name: 'Italy', slug: 'italy', flag: '🇮🇹' },
+  ],
+  'jet-lag-nutrition-business-travel': [
+    { name: 'Singapore', slug: 'singapore', flag: '🇸🇬' },
+    { name: 'Japan', slug: 'japan', flag: '🇯🇵' },
+  ],
+  'vegetarian-travel-guide-india': [
+    { name: 'India', slug: 'india', flag: '🇮🇳' },
+    { name: 'Nepal', slug: 'nepal', flag: '🇳🇵' },
+  ],
+  'high-altitude-nutrition-himalayan-trekkers': [
+    { name: 'Nepal', slug: 'nepal', flag: '🇳🇵' },
+  ],
+  'plant-based-eating-yoga-retreat-rishikesh': [
+    { name: 'India', slug: 'india', flag: '🇮🇳' },
+  ],
+  'managing-type-1-diabetes-traveling': [
+    { name: 'Japan', slug: 'japan', flag: '🇯🇵' },
+    { name: 'Thailand', slug: 'thailand', flag: '🇹🇭' },
+    { name: 'Singapore', slug: 'singapore', flag: '🇸🇬' },
   ],
 }
 
@@ -143,14 +164,13 @@ export default async function BlogPostPage({ params }) {
       { slug: params.slug, isPublished: true },
       { $inc: { viewCount: 1 } },
       { new: true }
-    ).select('title slug tag content summary readTime createdAt viewCount')
+    ).select('title slug tag content summary readTime createdAt viewCount image')
   } catch (err) {
     console.error('BlogPostPage:', err)
   }
 
   if (!post) notFound()
 
-  const imgMeta = BLOG_IMAGES[post.slug] || { image: null, placeholder: '#F1EFE8' }
   const related = RELATED_DESTINATIONS[post.slug] || []
   const postObj = JSON.parse(JSON.stringify(post))
 
@@ -163,10 +183,10 @@ export default async function BlogPostPage({ params }) {
   return (
     <div>
       {/* Hero image */}
-      <div style={{ position: 'relative', height: '240px', width: '100%', background: imgMeta.placeholder, overflow: 'hidden' }}>
-        {imgMeta.image && (
+      <div style={{ position: 'relative', height: '240px', width: '100%', background: '#1A5C4A', overflow: 'hidden' }}>
+        {postObj.image && (
           <Image
-            src={imgMeta.image}
+            src={postObj.image}
             alt={postObj.title}
             fill
             style={{ objectFit: 'cover' }}

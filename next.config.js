@@ -6,6 +6,15 @@ const withPWA = require('@ducanh2912/next-pwa').default({
 module.exports = withPWA({
   reactStrictMode: true,
   images: {
-    domains: ['images.unsplash.com', 'images.pexels.com'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.pexels.com',
+      },
+    ],
   },
 })

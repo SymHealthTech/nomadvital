@@ -30,7 +30,12 @@ export async function POST(request) {
 
   await connectDB()
 
-  if (eventType === 'subscription.active' || eventType === 'payment.succeeded') {
+  if (
+    eventType === 'subscription.active' ||
+    eventType === 'subscription.activated' ||
+    eventType === 'payment.succeeded' ||
+    eventType === 'subscription.trialing'
+  ) {
     const email = payload.data?.customer?.email
     const subscriptionId = payload.data?.subscription_id
 

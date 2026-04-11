@@ -6,12 +6,18 @@ import { dodo } from '@/lib/dodo'
 import connectDB from '@/lib/mongodb'
 import User from '@/models/User'
 
-export async function POST() {
+export async function POST(request) {
   const session = await auth()
 
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
+
+  // Resolve product ID from billing period — never trust a raw ID from the client
+  const { billing } = await request.json().catch(() => ({}))
+  const productId = billing === 'annual'
+    ? process.env.DODO_PRO_ANNUAL_PRODUCT_ID
+    : process.env.DODO_PRO_MONTHLY_PRODUCT_ID
 
   await connectDB()
   const user = await User.findById(session.user.id)
@@ -40,11 +46,17 @@ export async function POST() {
       zipcode: 0,
     },
     customer: { customer_id: user.dodoCustomerId },
-    product_id: process.env.DODO_PRO_PRODUCT_ID,
+    product_id: productId,
     quantity: 1,
     return_url: `${process.env.NEXTAUTH_URL}/dashboard?payment=success`,
     payment_link: true,
   })
+
+  // Store pending subscription ID so sync-plan can retrieve it quickly
+  const subId = checkout.subscription_id ?? checkout.id ?? null
+  if (subId) {
+    await User.findByIdAndUpdate(user._id, { dodoSubscriptionId: subId })
+  }
 
   return NextResponse.json({ checkoutUrl: checkout.payment_link })
 }

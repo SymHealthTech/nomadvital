@@ -25,13 +25,16 @@ export default auth((req) => {
     }
   }
 
-  // Protected user routes
-  const protectedRoutes = ['/ask', '/planner', '/dashboard']
-  if (protectedRoutes.some((route) => pathname.startsWith(route))) {
+  // Routes that require a real account (login or signup)
+  const loginRequired = ['/planner', '/dashboard']
+  if (loginRequired.some((route) => pathname.startsWith(route))) {
     if (!session) {
       return NextResponse.redirect(new URL('/login', req.url))
     }
   }
+
+  // /ask is open to all — unauthenticated visitors get a guest session created
+  // directly inside the page component itself (no middleware redirect needed)
 
   return NextResponse.next()
 })
@@ -40,7 +43,6 @@ export const config = {
   matcher: [
     '/admin/:path*',
     '/api/admin/:path*',
-    '/ask/:path*',
     '/planner/:path*',
     '/dashboard/:path*',
   ],

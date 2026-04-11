@@ -8,7 +8,7 @@ const articles = [
     title: '10 foods diabetics must avoid while traveling abroad',
     readTime: 5,
     summary: 'Hidden sugars in sauces, high-GI staple foods, and drinks that spike blood sugar — what to watch for in every destination.',
-    image: '/images/blog/diabetes-travel.jpg',
+    image: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80',
     placeholderColor: '#C0DD97',
   },
   {
@@ -17,7 +17,7 @@ const articles = [
     title: 'How to eat gluten-free in Japan — a complete guide',
     readTime: 7,
     summary: "Soy sauce is everywhere. Here's how to navigate Japanese cuisine safely with celiac disease or gluten sensitivity.",
-    image: '/images/blog/gluten-free-japan.jpg',
+    image: 'https://images.unsplash.com/photo-1569050467447-ce54b3bbc37d?w=800&q=80',
     placeholderColor: '#C0DD97',
   },
   {
@@ -26,7 +26,7 @@ const articles = [
     title: 'Water safety guide for international travelers in 2025',
     readTime: 6,
     summary: "Which countries have safe tap water, which don't, and what to do in high-risk destinations to avoid getting sick.",
-    image: '/images/blog/water-safety.jpg',
+    image: 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&q=80',
     placeholderColor: '#C0DD97',
   },
 ]

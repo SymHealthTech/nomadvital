@@ -1,8 +1,11 @@
 'use client'
 import { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
+import { useSession } from 'next-auth/react'
 
 export default function MobileStickyBar() {
+  const { data: session } = useSession()
+  const isPro = session?.user?.plan === 'pro'
   const [scrolled, setScrolled] = useState(false)
   const [mobileDismissed, setMobileDismissed] = useState(false)
   const [hiddenByPricing, setHiddenByPricing] = useState(false)
@@ -40,8 +43,8 @@ export default function MobileStickyBar() {
     setMobileDismissed(true)
   }
 
-  const mobileVisible = scrolled && !mobileDismissed && !hiddenByPricing
-  const desktopVisible = !hiddenByPricing
+  const mobileVisible = scrolled && !mobileDismissed && !hiddenByPricing && !isPro
+  const desktopVisible = !hiddenByPricing && !isPro
 
   return (
     <>
@@ -69,7 +72,7 @@ export default function MobileStickyBar() {
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <Link
-            href="/signup"
+            href="/guest"
             style={{
               background: '#1D9E75',
               color: 'white',
@@ -119,7 +122,7 @@ export default function MobileStickyBar() {
         }}
       >
         <Link
-          href="/signup"
+          href="/guest"
           style={{
             display: 'block',
             background: '#1D9E75',

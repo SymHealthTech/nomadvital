@@ -5,6 +5,8 @@ import connectDB from '@/lib/mongodb'
 import User from '@/models/User'
 import TravelerTypeCard from './TravelerTypeCard'
 import ManageSubscriptionButton from './ManageSubscriptionButton'
+import { Suspense } from 'react'
+import PaymentSuccessRefresh from './PaymentSuccessRefresh'
 
 export const metadata = {
   title: 'Dashboard — NomadVital',
@@ -14,7 +16,7 @@ export default async function DashboardPage() {
   const session = await auth()
   if (!session) redirect('/login')
 
-  const { name, email, plan, id } = session.user
+  const { name, email, plan, id, isGuest } = session.user
   const isPro = plan === 'pro'
 
   // Fetch live user data from DB (daily count + traveler type)
@@ -42,6 +44,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-12">
+      <Suspense fallback={null}><PaymentSuccessRefresh /></Suspense>
 
       {/* Header */}
       <div className="flex items-center gap-4 mb-10">
@@ -63,7 +66,7 @@ export default async function DashboardPage() {
         </div>
         <div>
           <h1 className="text-2xl font-bold text-[#085041]">
-            Welcome back{name ? `, ${name.split(' ')[0]}` : ''}
+            Welcome{name ? ` ${name.split(' ')[0]}` : ''}
           </h1>
           <p className="text-[#888780] text-sm">{email}</p>
         </div>
@@ -84,10 +87,23 @@ export default async function DashboardPage() {
         </div>
       </div>
 
+      {/* Guest banner */}
+      {isGuest && (
+        <div style={{ background: '#E1F5EE', border: '1px solid #A8DFC3', borderRadius: '12px', padding: '14px 18px', marginBottom: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+          <div>
+            <p style={{ fontSize: '13px', fontWeight: '600', color: '#085041', marginBottom: '2px', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>You&apos;re browsing as a guest</p>
+            <p style={{ fontSize: '12px', color: '#5F5E5A', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>Create a free account to save your progress and preferences.</p>
+          </div>
+          <Link href="/signup" style={{ background: '#085041', color: '#fff', fontSize: '13px', fontWeight: '600', padding: '8px 18px', borderRadius: '8px', textDecoration: 'none', whiteSpace: 'nowrap', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
+            Create free account →
+          </Link>
+        </div>
+      )}
+
       <div className="grid md:grid-cols-2 gap-6">
 
-        {/* Plan card */}
-        <div className="bg-white rounded-2xl border border-[#D3D1C7] p-6">
+        {/* Plan card — last on mobile so quick access shows first */}
+        <div className="bg-white rounded-2xl border border-[#D3D1C7] p-6 order-last md:order-first">
           <div className="text-[11px] font-medium text-[#1D9E75] tracking-[2px] uppercase mb-2">
             Current Plan
           </div>
@@ -149,7 +165,7 @@ export default async function DashboardPage() {
                 href="/pricing"
                 className="block w-full text-center bg-[#1D9E75] text-white text-sm font-semibold py-2.5 rounded-xl hover:bg-[#0F6E56] transition-colors"
               >
-                Upgrade to Pro — $12/mo
+                Upgrade to Pro — from $8.25/mo
               </Link>
             </>
           )}

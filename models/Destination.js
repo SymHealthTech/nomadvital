@@ -29,6 +29,9 @@ const DestinationSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  image: {
+    type: String, // Unsplash URL
+  },
   viewCount: {
     type: Number,
     default: 0,

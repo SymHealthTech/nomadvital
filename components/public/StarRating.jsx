@@ -135,17 +135,6 @@ export default function StarRating({
 
   return (
     <div>
-      {/* Display average */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 3, marginBottom: 6 }}>
-        {renderDisplayStars(average, 20, `av-${destination}`)}
-        <span style={{ fontSize: 13, color: '#5F5E5A', marginLeft: 6 }}>
-          {average > 0 ? `${average} / 5` : 'No ratings yet'}
-        </span>
-        {total > 0 && (
-          <span style={{ fontSize: 13, color: '#888780' }}>({total} travelers)</span>
-        )}
-      </div>
-
       {/* Interactive stars */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
         <div

@@ -3,13 +3,17 @@ import mongoose from 'mongoose'
 const UserSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true,
+    default: 'Guest',
   },
   email: {
     type: String,
-    required: true,
     unique: true,
+    sparse: true, // allows multiple null values (guests have no email)
     lowercase: true,
+  },
+  isGuest: {
+    type: Boolean,
+    default: false,
   },
   password: {
     type: String, // null for Google OAuth users
