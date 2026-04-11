@@ -19,6 +19,34 @@ export const metadata = {
   },
 }
 
+// Static fallback articles shown until DB posts are published
+const STATIC_POSTS = [
+  {
+    slug: '10-foods-diabetics-avoid-traveling',
+    tag: 'DIABETES · TRAVEL',
+    title: '10 foods diabetics must avoid while traveling abroad',
+    readTime: 5,
+    summary: 'Hidden sugars in sauces, high-GI staple foods, and drinks that spike blood sugar — what to watch for in every destination.',
+    image: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80',
+  },
+  {
+    slug: 'gluten-free-japan-complete-guide',
+    tag: 'GLUTEN-FREE · JAPAN',
+    title: 'How to eat gluten-free in Japan — a complete guide',
+    readTime: 7,
+    summary: "Soy sauce is everywhere. Here's how to navigate Japanese cuisine safely with celiac disease or gluten sensitivity.",
+    image: 'https://images.unsplash.com/photo-1569050467447-ce54b3bbc37d?w=800&q=80',
+  },
+  {
+    slug: 'water-safety-international-travelers',
+    tag: 'WATER SAFETY · GLOBAL',
+    title: 'Water safety guide for international travelers',
+    readTime: 6,
+    summary: "Which countries have safe tap water, which don't, and what to do in high-risk destinations to avoid getting sick.",
+    image: 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&q=80',
+  },
+]
+
 export default async function BlogPage() {
   let posts = []
   try {
@@ -28,8 +56,11 @@ export default async function BlogPage() {
       .sort({ createdAt: -1 })
     posts = JSON.parse(JSON.stringify(docs))
   } catch {
-    // fall through
+    // fall through to static fallback
   }
+
+  // Use static fallback when no DB posts exist yet
+  const displayPosts = posts.length > 0 ? posts : STATIC_POSTS
 
   return (
     <div>
@@ -52,13 +83,8 @@ export default async function BlogPage() {
       </div>
 
       <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '48px 24px' }}>
-        {posts.length === 0 ? (
-          <div style={{ background: '#F1EFE8', borderRadius: '16px', padding: '48px', textAlign: 'center', color: '#888780', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
-            Articles coming soon.
-          </div>
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' }}>
-            {posts.map((post) => {
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' }}>
+            {displayPosts.map((post) => {
               return (
                 <Link
                   key={post.slug}
@@ -156,7 +182,6 @@ export default async function BlogPage() {
               )
             })}
           </div>
-        )}
 
         {/* Related destinations */}
         <div style={{ marginTop: '56px' }}>
@@ -165,10 +190,10 @@ export default async function BlogPage() {
           </div>
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
             {[
-              { name: 'Japan', slug: 'japan', flag: '🇯🇵' },
-              { name: 'Thailand', slug: 'thailand', flag: '🇹🇭' },
-              { name: 'Italy', slug: 'italy', flag: '🇮🇹' },
-              { name: 'Mexico', slug: 'mexico', flag: '🇲🇽' },
+              { name: 'Japan', slug: 'japan', code: 'jp' },
+              { name: 'Thailand', slug: 'thailand', code: 'th' },
+              { name: 'Italy', slug: 'italy', code: 'it' },
+              { name: 'Mexico', slug: 'mexico', code: 'mx' },
             ].map((d) => (
               <Link
                 key={d.slug}
@@ -188,7 +213,7 @@ export default async function BlogPage() {
                   fontFamily: 'var(--font-inter, Inter, sans-serif)',
                 }}
               >
-                <span>{d.flag}</span>
+                <img src={`https://flagcdn.com/20x15/${d.code}.png`} width="20" height="15" alt="" style={{ borderRadius: '2px' }} />
                 {d.name}
               </Link>
             ))}

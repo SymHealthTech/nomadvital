@@ -204,7 +204,7 @@ export default function Navbar() {
                     </Link>
                   ))}
                   <button
-                    onClick={() => signOut({ callbackUrl: '/' })}
+                    onClick={() => signOut({ redirect: false }).then(() => { window.location.href = '/' })}
                     style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none', padding: '8px 12px', borderRadius: '7px', fontSize: '13px', color: '#B91C1C', cursor: 'pointer', fontFamily: 'var(--font-inter, Inter, sans-serif)', marginTop: '2px' }}
                     onMouseEnter={e => e.currentTarget.style.background = '#FEF2F2'}
                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
@@ -266,7 +266,7 @@ export default function Navbar() {
                     </Link>
                   ))}
                   <button
-                    onClick={() => { setUserMenuOpen(false); signOut({ callbackUrl: '/' }) }}
+                    onClick={() => { setUserMenuOpen(false); signOut({ redirect: false }).then(() => { window.location.href = '/' }) }}
                     style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none', padding: '8px 12px', borderRadius: '7px', fontSize: '13px', color: '#B91C1C', cursor: 'pointer', fontFamily: 'var(--font-inter, Inter, sans-serif)', marginTop: '2px' }}
                   >
                     Sign out
@@ -339,7 +339,7 @@ export default function Navbar() {
             <>
               <Link href="/dashboard" onClick={() => setMenuOpen(false)}>Dashboard</Link>
               <button
-                onClick={() => { setMenuOpen(false); signOut({ callbackUrl: '/' }) }}
+                onClick={() => { setMenuOpen(false); signOut({ redirect: false }).then(() => { window.location.href = '/' }) }}
                 style={{ background: 'none', border: 'none', color: '#9FE1CB', fontSize: '14px', fontWeight: '500', cursor: 'pointer', padding: 0, textAlign: 'left', fontFamily: 'inherit' }}
               >
                 Sign out
