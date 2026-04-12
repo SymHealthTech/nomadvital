@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { useSession, signIn } from 'next-auth/react'
 import { getPersonaById } from '@/lib/travelerPersonas'
+import LeaveConfirmation from '@/components/public/LeaveConfirmation'
 
 const FREE_LIMIT = 3
 
@@ -239,9 +240,10 @@ export default function AskPage() {
 
   return (
     <div style={{ background: '#F1EFE8', minHeight: '100vh', overflowX: 'hidden' }}>
+      <LeaveConfirmation active={messages.length > 0} />
 
-      {/* Header */}
-      <div style={{ background: '#085041', padding: '28px 24px', textAlign: 'center' }}>
+      {/* Header — hidden on mobile */}
+      <div className="hidden md:block" style={{ background: '#085041', padding: '28px 24px', textAlign: 'center' }}>
         <h1 style={{ fontFamily: 'var(--font-playfair, Georgia, serif)', fontSize: 'clamp(1.4rem, 3vw, 1.9rem)', fontWeight: '700', color: '#fff', marginBottom: '6px' }}>
           AI Health Advisor
         </h1>
@@ -259,9 +261,9 @@ export default function AskPage() {
         )}
       </div>
 
-      {/* Chat container */}
-      <div style={{ maxWidth: '760px', margin: '0 auto', padding: '20px 16px 48px' }}>
-        <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #D3D1C7', overflow: 'hidden', boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}>
+      {/* Chat container — full-width on mobile, centred on desktop */}
+      <div className="md:max-w-[760px] md:mx-auto md:py-5 md:px-4">
+        <div className="md:rounded-2xl md:border md:border-[#D3D1C7] md:shadow-lg" style={{ background: '#fff', overflow: 'hidden' }}>
 
           {/* Chat header bar */}
           <div style={{ background: '#085041', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '10px' }}>

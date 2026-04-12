@@ -1,7 +1,6 @@
 import HeroSection from '@/components/public/HeroSection'
 import TrustBar from '@/components/public/TrustBar'
 import FeaturesSection from '@/components/public/FeaturesSection'
-import WhoIsItForSection from '@/components/public/WhoIsItForSection'
 import HowItWorksSection from '@/components/public/HowItWorksSection'
 import ChatDemo from '@/components/public/ChatDemo'
 import DestinationsSection from '@/components/public/DestinationsSection'
@@ -61,7 +60,6 @@ export default function HomePage() {
       <FadeInSection delay={100}>
         <FeaturesSection />
       </FadeInSection>
-      <WhoIsItForSection />
       <FadeInSection delay={100}>
         <HowItWorksSection />
       </FadeInSection>

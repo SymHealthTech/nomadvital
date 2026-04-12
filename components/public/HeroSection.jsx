@@ -22,7 +22,7 @@ export default async function HeroSection() {
         background: 'linear-gradient(160deg, #085041F0 0%, #085041CC 60%, #0F6E5699 100%)',
       }} />
       <div className="max-w-5xl mx-auto px-6 sm:px-8 text-center" style={{ position: 'relative' }}>
-        <div className="font-inter inline-block bg-[#0F6E56] text-[#5DCAA5] text-[11px] font-medium px-3 py-1 rounded-full mb-6 tracking-[2.5px] uppercase">
+        <div className="font-inter hidden md:inline-block bg-[#0F6E56] text-[#5DCAA5] text-[11px] font-medium px-3 py-1 rounded-full mb-6 tracking-[2.5px] uppercase">
           RUNNERS · MOUNTAINEERS · TOURISTS · BUSINESS TRIPS · WELLNESS · ADVENTURE
         </div>
 

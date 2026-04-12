@@ -5,8 +5,8 @@ export default function Footer() {
     <footer className="bg-[#085041] text-white mt-auto">
       <div className="max-w-6xl mx-auto px-5 py-8">
 
-        {/* Logo + tagline */}
-        <div className="flex flex-col items-center mb-6 text-center">
+        {/* Logo + tagline — hidden on mobile (navbar already shows it) */}
+        <div className="hidden md:flex flex-col items-center mb-6 text-center">
           <div className="flex items-center gap-2 mb-2">
             <div style={{ width: '28px', height: '28px', backgroundColor: '#1D9E75', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <svg width="14" height="14" viewBox="0 0 18 18" fill="none">
@@ -20,11 +20,11 @@ export default function Footer() {
             </span>
           </div>
           <p className="text-xs text-[#9FE1CB] max-w-xs leading-relaxed">
-            AI travel health advisor for food safety and nutrition abroad.
+            Smart health &amp; nutrition guidance for travelers — wherever you go.
           </p>
         </div>
 
-        <hr className="border-[#0F6E56] mb-6" />
+        <hr className="hidden md:block border-[#0F6E56] mb-6" />
 
         {/* Links row */}
         <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-3 mb-6 text-sm">
