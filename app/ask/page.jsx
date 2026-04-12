@@ -267,7 +267,8 @@ export default function AskPage() {
 
           {/* Chat header bar */}
           <div style={{ background: '#085041', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{ width: '28px', height: '28px', background: 'rgba(255,255,255,0.15)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            {/* Logo icon — hidden on mobile (navbar already shows NomadVital branding) */}
+            <div className="hidden md:flex" style={{ width: '28px', height: '28px', background: 'rgba(255,255,255,0.15)', borderRadius: '50%', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <svg width="14" height="14" viewBox="0 0 18 18" fill="none">
                 <circle cx="9" cy="9" r="7.5" stroke="#E1F5EE" strokeWidth="1"/>
                 <path d="M9 2.5L10.8 6L14.5 4.8L12.5 8.5L14.5 12.2L10.8 11L9 14.5L7.2 11L3.5 12.2L5.5 8.5L3.5 4.8L7.2 6Z" fill="#E1F5EE" opacity="0.85"/>
@@ -284,8 +285,13 @@ export default function AskPage() {
                 <span style={{ fontSize: '10px', color: '#9FE1CB', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>Online · Powered by Claude</span>
               </div>
             </div>
+            {/* Mobile: change category link */}
+            <Link href="/dashboard" className="md:hidden" style={{ fontSize: '11px', color: '#9FE1CB', fontFamily: 'var(--font-inter, Inter, sans-serif)', textDecoration: 'none', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', padding: '4px 9px', whiteSpace: 'nowrap', flexShrink: 0 }}>
+              Change ↗
+            </Link>
+            {/* Desktop: questions remaining */}
             {!isPro && questionsUsed !== null && !paywallActive && (
-              <div style={{ fontSize: '11px', color: '#9FE1CB', fontFamily: 'var(--font-inter, Inter, sans-serif)', textAlign: 'right' }}>
+              <div className="hidden md:block" style={{ fontSize: '11px', color: '#9FE1CB', fontFamily: 'var(--font-inter, Inter, sans-serif)', textAlign: 'right' }}>
                 <span style={{ color: questionsRemaining <= 1 ? '#FCA5A5' : '#5DCAA5', fontWeight: '600' }}>{questionsRemaining}</span> left today
               </div>
             )}
