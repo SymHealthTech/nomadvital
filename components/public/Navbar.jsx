@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { useSession, signOut } from 'next-auth/react'
-import { travelerPersonas } from '@/lib/travelerPersonas'
 
 function UserAvatar({ name, plan }) {
   const initials = name
@@ -49,8 +48,6 @@ function UserAvatar({ name, plan }) {
 export default function Navbar() {
   const { data: session, status } = useSession()
   const [menuOpen, setMenuOpen] = useState(false)
-  const [dropdownOpen, setDropdownOpen] = useState(false)
-  const [mobileForOpen, setMobileForOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
 
   const isLoggedIn = status === 'authenticated'
@@ -80,69 +77,6 @@ export default function Navbar() {
           <Link href="/destinations" className="hover:text-[#5DCAA5] transition-colors">
             Destinations
           </Link>
-
-          {/* For Travelers dropdown */}
-          <div
-            style={{ position: 'relative' }}
-            onMouseEnter={() => setDropdownOpen(true)}
-            onMouseLeave={() => setDropdownOpen(false)}
-          >
-            <button
-              style={{
-                background: 'none',
-                border: 'none',
-                color: dropdownOpen ? '#5DCAA5' : 'inherit',
-                fontSize: '14px',
-                fontWeight: '500',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-                padding: '4px 0 16px',
-                marginBottom: '-12px',
-                fontFamily: 'inherit',
-                transition: 'color 0.15s',
-              }}
-              className="hover:text-[#5DCAA5]"
-            >
-              For Travelers
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-                style={{ transition: 'transform 0.15s', transform: dropdownOpen ? 'rotate(180deg)' : 'none' }}>
-                <path d="M6 9l6 6 6-6"/>
-              </svg>
-            </button>
-
-            {dropdownOpen && (
-              <div style={{
-                position: 'absolute',
-                top: '100%',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                background: '#fff',
-                border: '0.5px solid #D3D1C7',
-                borderRadius: '10px',
-                boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
-                minWidth: '230px',
-                padding: '6px',
-                zIndex: 100,
-              }}>
-                {travelerPersonas.map((persona) => (
-                  <Link key={persona.id} href={persona.pageUrl} style={{ textDecoration: 'none' }} onClick={() => setDropdownOpen(false)}>
-                    <div
-                      style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 10px', borderRadius: '7px', cursor: 'pointer', transition: 'background 0.1s' }}
-                      onMouseEnter={e => e.currentTarget.style.background = '#E1F5EE'}
-                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                    >
-                      <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: persona.color, flexShrink: 0 }} />
-                      <span style={{ fontSize: '13px', color: '#085041', fontWeight: '500', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
-                        {persona.emoji} {persona.name}
-                      </span>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
 
           <Link href="/blog" className="hover:text-[#5DCAA5] transition-colors">Blog</Link>
           <Link href="/pricing" className="hover:text-[#5DCAA5] transition-colors">Pricing</Link>
@@ -300,37 +234,6 @@ export default function Navbar() {
       {menuOpen && (
         <div className="md:hidden border-t border-[#0F6E56] px-4 py-4 flex flex-col gap-3 text-sm font-medium">
           <Link href="/destinations" onClick={() => setMenuOpen(false)}>Destinations</Link>
-
-          {/* Mobile: For Travelers accordion */}
-          <div>
-            <button
-              onClick={() => setMobileForOpen(!mobileForOpen)}
-              style={{ background: 'none', border: 'none', color: '#fff', fontSize: '14px', fontWeight: '500', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', padding: 0, fontFamily: 'inherit', width: '100%', textAlign: 'left' }}
-            >
-              For Travelers
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-                style={{ transition: 'transform 0.15s', transform: mobileForOpen ? 'rotate(180deg)' : 'none' }}>
-                <path d="M6 9l6 6 6-6"/>
-              </svg>
-            </button>
-
-            {mobileForOpen && (
-              <div style={{ marginTop: '8px', paddingLeft: '12px', borderLeft: '2px solid #0F6E56', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                {travelerPersonas.map((persona) => (
-                  <Link
-                    key={persona.id}
-                    href={persona.pageUrl}
-                    onClick={() => { setMenuOpen(false); setMobileForOpen(false) }}
-                    style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '7px 8px', borderRadius: '7px', textDecoration: 'none', color: '#E1F5EE', fontSize: '13px' }}
-                  >
-                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: persona.color, flexShrink: 0 }} />
-                    {persona.emoji} {persona.name}
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-
           <Link href="/blog" onClick={() => setMenuOpen(false)}>Blog</Link>
           <Link href="/pricing" onClick={() => setMenuOpen(false)}>Pricing</Link>
           <Link href="/ask" onClick={() => setMenuOpen(false)}>AI Advisor</Link>

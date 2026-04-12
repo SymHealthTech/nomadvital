@@ -5,6 +5,19 @@ import { auth } from '@/lib/auth'
 import connectDB from '@/lib/mongodb'
 import User from '@/models/User'
 
+export async function GET() {
+  const session = await auth()
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  try {
+    await connectDB()
+    const dbUser = await User.findById(session.user.id).select('travelerType').lean()
+    return NextResponse.json({ travelerType: dbUser?.travelerType || 'general' })
+  } catch {
+    return NextResponse.json({ travelerType: 'general' })
+  }
+}
+
 export async function PATCH(request) {
   const session = await auth()
 
