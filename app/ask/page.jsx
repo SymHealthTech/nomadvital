@@ -239,7 +239,7 @@ export default function AskPage() {
   }
 
   return (
-    <div style={{ background: '#F1EFE8', minHeight: '100vh', overflowX: 'hidden' }}>
+    <div className="ask-outer" style={{ background: '#F1EFE8', overflowX: 'hidden' }}>
       <LeaveConfirmation active={messages.length > 0} />
 
       {/* Header — hidden on mobile */}
@@ -262,8 +262,8 @@ export default function AskPage() {
       </div>
 
       {/* Chat container — full-width on mobile, centred on desktop */}
-      <div className="md:max-w-[760px] md:mx-auto md:py-5 md:px-4">
-        <div className="md:rounded-2xl md:border md:border-[#D3D1C7] md:shadow-lg" style={{ background: '#fff', overflow: 'hidden' }}>
+      <div className="ask-container md:max-w-[760px] md:mx-auto md:py-5 md:px-4">
+        <div className="ask-card md:rounded-2xl md:border md:border-[#D3D1C7] md:shadow-lg" style={{ background: '#fff', overflow: 'hidden' }}>
 
           {/* Chat header bar */}
           <div style={{ background: '#085041', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -275,7 +275,10 @@ export default function AskPage() {
               </svg>
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: '13px', fontWeight: '600', color: '#fff', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>NomadVital AI</div>
+              <div style={{ fontSize: '13px', fontWeight: '600', color: '#fff', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
+                <span className="md:hidden">AI Advisor</span>
+                <span className="hidden md:inline">NomadVital AI</span>
+              </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#5DCAA5' }} />
                 <span style={{ fontSize: '10px', color: '#9FE1CB', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>Online · Powered by Claude</span>
@@ -289,7 +292,7 @@ export default function AskPage() {
           </div>
 
           {/* Messages */}
-          <div style={{ minHeight: '360px', maxHeight: '500px', overflowY: 'auto', padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: '14px', background: '#FAFAF8' }}>
+          <div className="ask-messages" style={{ overflowY: 'auto', padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: '14px', background: '#FAFAF8' }}>
 
             {messages.length === 0 && !loading && (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, minHeight: '280px', textAlign: 'center', padding: '20px' }}>
@@ -395,6 +398,18 @@ export default function AskPage() {
           </div>
         </div>
       </div>
+      <style>{`
+        .ask-outer { display: flex; flex-direction: column; height: 100dvh; overflow: hidden; }
+        .ask-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .ask-card { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .ask-messages { flex: 1; min-height: 0; }
+        @media (min-width: 768px) {
+          .ask-outer { height: auto; min-height: 100vh; display: block; overflow: visible; }
+          .ask-container { flex: none; display: block; overflow: visible; }
+          .ask-card { flex: none; display: block; overflow: hidden; }
+          .ask-messages { flex: none; min-height: 360px; max-height: 55vh; }
+        }
+      `}</style>
     </div>
   )
 }

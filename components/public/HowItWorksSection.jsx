@@ -41,7 +41,7 @@ export default function HowItWorksSection() {
   ]
 
   return (
-    <section style={{ background: '#F1EFE8', padding: '72px 16px' }}>
+    <section style={{ background: '#ffffff', padding: '72px 16px' }}>
       <div style={{ maxWidth: '960px', margin: '0 auto', textAlign: 'center' }}>
         <div
           style={{
