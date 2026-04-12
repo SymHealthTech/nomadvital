@@ -3,104 +3,149 @@
 import { useEffect, useState, useRef } from 'react'
 
 /**
- * Professional Android-style back-button guard for PWA.
+ * Professional 3-press back-button guard for PWA.
  *
- * Behaviour:
- *   1st back press  → toast "Tap back once more to exit"
- *   2nd back press within 2s → "Leave NomadVital?" dialog
- *   Physical back while dialog is open → dismiss dialog (stay in app)
- *   Dialog "Cancel" → stay, reset counter
- *   Dialog "Exit"   → window.close() / fallback to home
+ * Flow:
+ *   1st back press  → toast  "Press back 2 more times to exit"
+ *   2nd back press  → toast  "Press back once more to exit"
+ *   3rd back press  → "Leave NomadVital?" confirmation dialog
+ *   Physical back while dialog is open → dismiss dialog (stay), reset count
+ *   "Cancel"  → dismiss dialog, reset count
+ *   "Exit App"→ window.close() / fallback home
  *
- * A guard history-state is always maintained so the browser never
- * exits the PWA silently.
+ * A history guard is ALWAYS re-pushed after every handled press so the
+ * browser can never silently close the PWA.
  */
-export default function BackPressGuard() {
-  const [uiState, setUiState] = useState('idle') // 'idle' | 'toast' | 'dialog'
-  const stateRef  = useRef('idle')   // mirror for use inside event handler (no stale closure)
-  const lastPress = useRef(0)
-  const toastTimer = useRef(null)
-  const WINDOW_MS = 2000             // 2 s window to register second press
 
-  /* ── helpers ── */
+const THRESHOLD   = 3      // presses before dialog
+const GAP_RESET   = 3000   // ms — counter resets if gap between presses is too long
+const TOAST_HIDE  = 2500   // ms — toast auto-hides
+
+export default function BackPressGuard() {
+  const [toast,      setToast]      = useState('')       // '' = hidden
+  const [dialog,     setDialog]     = useState(false)
+
+  // All mutable state lives in refs so the popstate handler never reads stale closures
+  const countRef      = useRef(0)
+  const dialogRef     = useRef(false)
+  const lastPressRef  = useRef(0)
+  const gapTimer      = useRef(null)
+  const toastTimer    = useRef(null)
+
+  /* keep dialogRef in sync with state */
+  function openDialog() {
+    dialogRef.current = true
+    setDialog(true)
+  }
+  function closeDialog() {
+    dialogRef.current = false
+    setDialog(false)
+  }
+
+  /* always push one guard so next back press fires popstate */
   function pushGuard() {
     window.history.pushState({ nvGuard: true }, '')
   }
 
-  function transition(next) {
-    stateRef.current = next
-    setUiState(next)
+  /* reset press counter and clear toasts/timers */
+  function resetCount() {
+    countRef.current = 0
+    clearTimeout(gapTimer.current)
+    clearTimeout(toastTimer.current)
+    setToast('')
   }
 
-  /* ── popstate handler ── */
+  function showToast(msg) {
+    setToast(msg)
+    clearTimeout(toastTimer.current)
+    toastTimer.current = setTimeout(() => setToast(''), TOAST_HIDE)
+  }
+
   useEffect(() => {
-    pushGuard() // place first guard so back doesn't close app immediately
+    /* Push the initial guard on mount */
+    pushGuard()
 
     function onPopState() {
       const now     = Date.now()
-      const elapsed = now - lastPress.current
-      lastPress.current = now
+      const elapsed = now - lastPressRef.current
+      lastPressRef.current = now
 
-      const s = stateRef.current
-
-      // ── Case 1: dialog is open → physical back = dismiss (treat as "Cancel")
-      if (s === 'dialog') {
-        clearTimeout(toastTimer.current)
-        transition('idle')
-        pushGuard()
+      /* ── If dialog is open: physical back = dismiss dialog ── */
+      if (dialogRef.current) {
+        closeDialog()
+        resetCount()
+        pushGuard()   // re-arm
         return
       }
 
-      // ── Case 2: toast is visible and second press comes within 2 s → show dialog
-      if (s === 'toast' && elapsed <= WINDOW_MS) {
-        clearTimeout(toastTimer.current)
-        transition('dialog')
-        pushGuard()   // keep guard so physical back on dialog is caught (Case 1)
-        return
+      /* ── Reset counter if gap between presses is too long ── */
+      if (elapsed > GAP_RESET) {
+        countRef.current = 0
       }
 
-      // ── Case 3: idle, OR toast timeout already passed → first press, show toast
-      clearTimeout(toastTimer.current)
-      transition('toast')
-      pushGuard()     // re-push guard so next press fires popstate again
-      toastTimer.current = setTimeout(() => {
-        // toast expired without a second press → reset
-        if (stateRef.current === 'toast') transition('idle')
-      }, WINDOW_MS + 200) // slightly longer than WINDOW_MS so Case 2 wins a tight race
+      /* ── Increment ── */
+      countRef.current += 1
+
+      /* ── Schedule gap-reset (so slow presses don't accumulate forever) ── */
+      clearTimeout(gapTimer.current)
+      gapTimer.current = setTimeout(() => {
+        countRef.current = 0
+        setToast('')
+      }, GAP_RESET)
+
+      /* ── Decide what to show ── */
+      if (countRef.current >= THRESHOLD) {
+        /* Third (or more) rapid press → confirmation dialog */
+        clearTimeout(gapTimer.current)
+        clearTimeout(toastTimer.current)
+        setToast('')
+        countRef.current = 0
+        openDialog()
+        pushGuard()   // guard so physical back on dialog dismisses it (handled above)
+      } else {
+        /* First or second press → progress toast */
+        const remaining = THRESHOLD - countRef.current
+        showToast(
+          remaining === 1
+            ? 'Press back once more to exit'
+            : `Press back ${remaining} more times to exit`
+        )
+        pushGuard()   // re-arm for next press
+      }
     }
 
     window.addEventListener('popstate', onPopState)
     return () => {
       window.removeEventListener('popstate', onPopState)
+      clearTimeout(gapTimer.current)
       clearTimeout(toastTimer.current)
     }
   }, [])
 
-  /* ── dialog button handlers ── */
+  /* ── Dialog buttons ── */
   function handleCancel() {
-    clearTimeout(toastTimer.current)
-    transition('idle')
+    closeDialog()
+    resetCount()
     pushGuard()
   }
 
   function handleExit() {
-    transition('idle')
-    // Close PWA on Android; fallback navigates to home on browsers
+    closeDialog()
     window.close()
     setTimeout(() => { window.location.href = '/' }, 200)
   }
 
-  /* ── render ── */
+  /* ── Render ── */
   return (
     <>
-      {/* ── Toast ── */}
-      {uiState === 'toast' && (
+      {/* Toast */}
+      {toast && (
         <div
           role="status"
           aria-live="polite"
           style={{
             position: 'fixed',
-            bottom: '24px',
+            bottom: '28px',
             left: '50%',
             transform: 'translateX(-50%)',
             background: 'rgba(6,46,37,0.93)',
@@ -113,30 +158,30 @@ export default function BackPressGuard() {
             zIndex: 9998,
             whiteSpace: 'nowrap',
             boxShadow: '0 4px 24px rgba(0,0,0,0.3)',
-            animation: 'nvSlideUp 0.22s ease',
             pointerEvents: 'none',
+            animation: 'bpSlideUp 0.2s ease',
           }}
         >
-          Tap back once more to exit
+          {toast}
         </div>
       )}
 
-      {/* ── Exit confirmation dialog ── */}
-      {uiState === 'dialog' && (
+      {/* Confirmation dialog */}
+      {dialog && (
         <div
           role="dialog"
           aria-modal="true"
-          aria-labelledby="exit-dialog-title"
+          aria-labelledby="bp-title"
           style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(0,0,0,0.50)',
+            background: 'rgba(0,0,0,0.52)',
             zIndex: 9999,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             padding: '24px',
-            animation: 'nvFadeIn 0.18s ease',
+            animation: 'bpFadeIn 0.18s ease',
           }}
         >
           <div
@@ -148,78 +193,46 @@ export default function BackPressGuard() {
               width: '100%',
               textAlign: 'center',
               boxShadow: '0 24px 64px rgba(0,0,0,0.22)',
-              animation: 'nvPopIn 0.22s ease',
+              animation: 'bpPopIn 0.2s ease',
             }}
           >
-            {/* Icon */}
-            <div
-              style={{
-                width: '56px',
-                height: '56px',
-                background: '#E8F5EE',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto 18px',
-              }}
-            >
-              {/* NomadVital logo mark */}
+            {/* Logo mark */}
+            <div style={{
+              width: '56px', height: '56px', background: '#E8F5EE', borderRadius: '50%',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              margin: '0 auto 18px',
+            }}>
               <svg width="26" height="26" viewBox="0 0 18 18" fill="none">
                 <circle cx="9" cy="9" r="7.5" stroke="#1D9E75" strokeWidth="1.2"/>
-                <path
-                  d="M9 2.5L10.8 6L14.5 4.8L12.5 8.5L14.5 12.2L10.8 11L9 14.5L7.2 11L3.5 12.2L5.5 8.5L3.5 4.8L7.2 6Z"
-                  fill="#1D9E75"
-                  opacity="0.7"
-                />
+                <path d="M9 2.5L10.8 6L14.5 4.8L12.5 8.5L14.5 12.2L10.8 11L9 14.5L7.2 11L3.5 12.2L5.5 8.5L3.5 4.8L7.2 6Z" fill="#1D9E75" opacity="0.7"/>
                 <circle cx="9" cy="9" r="2" fill="#085041"/>
               </svg>
             </div>
 
-            {/* Title */}
-            <h3
-              id="exit-dialog-title"
-              style={{
-                fontFamily: 'var(--font-playfair, Georgia, serif)',
-                fontSize: '19px',
-                fontWeight: '700',
-                color: '#085041',
-                marginBottom: '8px',
-                lineHeight: '1.25',
-              }}
-            >
+            <h3 id="bp-title" style={{
+              fontFamily: 'var(--font-playfair, Georgia, serif)',
+              fontSize: '19px', fontWeight: '700', color: '#085041',
+              marginBottom: '8px', lineHeight: '1.25',
+            }}>
               Leave NomadVital?
             </h3>
-
-            {/* Body */}
-            <p
-              style={{
-                fontSize: '13px',
-                color: '#5F5E5A',
-                lineHeight: '1.65',
-                marginBottom: '24px',
-                fontFamily: 'var(--font-inter, Inter, sans-serif)',
-              }}
-            >
+            <p style={{
+              fontSize: '13px', color: '#5F5E5A', lineHeight: '1.65',
+              marginBottom: '24px',
+              fontFamily: 'var(--font-inter, Inter, sans-serif)',
+            }}>
               Are you sure you want to close the app?
             </p>
 
-            {/* Buttons */}
             <div style={{ display: 'flex', gap: '10px' }}>
               <button
                 onClick={handleCancel}
                 style={{
-                  flex: 1,
-                  padding: '13px',
-                  border: '1.5px solid #D3D1C7',
-                  borderRadius: '12px',
-                  background: '#F9F8F5',
-                  color: '#085041',
-                  fontWeight: '600',
-                  fontSize: '14px',
-                  cursor: 'pointer',
+                  flex: 1, padding: '13px',
+                  border: '1.5px solid #D3D1C7', borderRadius: '12px',
+                  background: '#F9F8F5', color: '#085041',
+                  fontWeight: '600', fontSize: '14px', cursor: 'pointer',
                   fontFamily: 'var(--font-inter, Inter, sans-serif)',
-                  transition: 'background 0.15s',
                 }}
               >
                 Cancel
@@ -227,17 +240,11 @@ export default function BackPressGuard() {
               <button
                 onClick={handleExit}
                 style={{
-                  flex: 1,
-                  padding: '13px',
-                  border: 'none',
-                  borderRadius: '12px',
-                  background: '#085041',
-                  color: '#ffffff',
-                  fontWeight: '600',
-                  fontSize: '14px',
-                  cursor: 'pointer',
+                  flex: 1, padding: '13px',
+                  border: 'none', borderRadius: '12px',
+                  background: '#085041', color: '#ffffff',
+                  fontWeight: '600', fontSize: '14px', cursor: 'pointer',
                   fontFamily: 'var(--font-inter, Inter, sans-serif)',
-                  transition: 'background 0.15s',
                 }}
               >
                 Exit App
@@ -246,9 +253,9 @@ export default function BackPressGuard() {
           </div>
 
           <style>{`
-            @keyframes nvSlideUp  { from { opacity:0; transform:translateX(-50%) translateY(10px) } to { opacity:1; transform:translateX(-50%) translateY(0) } }
-            @keyframes nvFadeIn   { from { opacity:0 } to { opacity:1 } }
-            @keyframes nvPopIn    { from { opacity:0; transform:scale(0.93) } to { opacity:1; transform:scale(1) } }
+            @keyframes bpSlideUp { from{opacity:0;transform:translateX(-50%) translateY(8px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+            @keyframes bpFadeIn  { from{opacity:0} to{opacity:1} }
+            @keyframes bpPopIn   { from{opacity:0;transform:scale(0.94)} to{opacity:1;transform:scale(1)} }
           `}</style>
         </div>
       )}

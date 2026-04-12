@@ -22,8 +22,9 @@ export default function PaymentSuccessRefresh() {
           const data = await res.json()
 
           if (data.plan === 'pro') {
-            // DB is now pro. Hard reload — the session callback always reads
-            // fresh from DB so the page will render with pro immediately.
+            // Signal the PWA install modal to appear after the reload
+            sessionStorage.setItem('showPWAPrompt', 'true')
+            // Hard reload — the session callback always reads fresh from DB
             window.location.href = '/dashboard'
             return
           }

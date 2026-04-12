@@ -286,11 +286,11 @@ export default function AskPage() {
               </div>
             </div>
             {/* Mobile: traveler category + change link */}
-            <div className="md:hidden" style={{ textAlign: 'right', flexShrink: 0 }}>
-              <div style={{ fontSize: '11px', color: '#E1F5EE', fontFamily: 'var(--font-inter, Inter, sans-serif)', marginBottom: '3px', whiteSpace: 'nowrap' }}>
+            <div className="md:hidden" style={{ textAlign: 'right', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+              <div style={{ fontSize: '11px', color: '#E1F5EE', fontFamily: 'var(--font-inter, Inter, sans-serif)', whiteSpace: 'nowrap', lineHeight: '1.2' }}>
                 {persona.emoji} {persona.name}
               </div>
-              <Link href="/dashboard" style={{ fontSize: '10px', color: '#5DCAA5', fontFamily: 'var(--font-inter, Inter, sans-serif)', textDecoration: 'none' }}>
+              <Link href="/dashboard" style={{ fontSize: '10px', color: '#5DCAA5', fontFamily: 'var(--font-inter, Inter, sans-serif)', textDecoration: 'none', lineHeight: '1.2' }}>
                 Change
               </Link>
             </div>
