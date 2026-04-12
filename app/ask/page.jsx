@@ -285,10 +285,15 @@ export default function AskPage() {
                 <span style={{ fontSize: '10px', color: '#9FE1CB', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>Online · Powered by Claude</span>
               </div>
             </div>
-            {/* Mobile: change category link */}
-            <Link href="/dashboard" className="md:hidden" style={{ fontSize: '11px', color: '#9FE1CB', fontFamily: 'var(--font-inter, Inter, sans-serif)', textDecoration: 'none', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', padding: '4px 9px', whiteSpace: 'nowrap', flexShrink: 0 }}>
-              Change ↗
-            </Link>
+            {/* Mobile: traveler category + change link */}
+            <div className="md:hidden" style={{ textAlign: 'right', flexShrink: 0 }}>
+              <div style={{ fontSize: '11px', color: '#E1F5EE', fontFamily: 'var(--font-inter, Inter, sans-serif)', marginBottom: '3px', whiteSpace: 'nowrap' }}>
+                {persona.emoji} {persona.name}
+              </div>
+              <Link href="/dashboard" style={{ fontSize: '10px', color: '#5DCAA5', fontFamily: 'var(--font-inter, Inter, sans-serif)', textDecoration: 'none' }}>
+                Change
+              </Link>
+            </div>
             {/* Desktop: questions remaining */}
             {!isPro && questionsUsed !== null && !paywallActive && (
               <div className="hidden md:block" style={{ fontSize: '11px', color: '#9FE1CB', fontFamily: 'var(--font-inter, Inter, sans-serif)', textAlign: 'right' }}>
@@ -410,10 +415,10 @@ export default function AskPage() {
         .ask-card { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
         .ask-messages { flex: 1; min-height: 0; }
         @media (min-width: 768px) {
-          .ask-outer { height: auto; min-height: 100vh; display: block; overflow: visible; }
+          .ask-outer { height: auto; display: block; overflow: visible; }
           .ask-container { flex: none; display: block; overflow: visible; }
           .ask-card { flex: none; display: block; overflow: hidden; }
-          .ask-messages { flex: none; min-height: 360px; max-height: 55vh; }
+          .ask-messages { flex: none; min-height: 300px; max-height: calc(100dvh - 340px); }
         }
       `}</style>
     </div>

@@ -26,8 +26,8 @@ export default function Footer({ mobileHidden = false }) {
             { href: '/ask', label: 'AI Advisor' },
             { href: '/destinations', label: 'Destinations' },
             { href: '/blog', label: 'Blog' },
-            { href: '/pricing', label: 'Pricing' },
-            { href: '/privacy', label: 'Privacy' },
+            { href: '/privacy', label: 'Privacy Policy' },
+            { href: '/disclaimer', label: 'Medical Disclaimer' },
             { href: '/contact', label: 'Contact' },
           ].map(({ href, label }) => (
             <Link key={href} href={href} className="text-[11px] text-[#5F8A7A] hover:text-white transition-colors">
