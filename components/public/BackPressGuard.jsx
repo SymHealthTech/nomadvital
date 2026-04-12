@@ -3,42 +3,51 @@
 import { useEffect, useState, useRef } from 'react'
 
 export default function BackPressGuard() {
-  const [show, setShow] = useState(false)
+  const [show, setShow]     = useState(false)
+  const count               = useRef(0)
+  const isOpen              = useRef(false)
+  const resetTimer          = useRef(null)
 
-  // Use refs so the popstate handler always reads current values
-  const count     = useRef(0)
-  const isOpen    = useRef(false)   // true while dialog is visible
-  const resetTimer = useRef(null)
+  /* Always push with the explicit current URL — more reliable on Android WebView */
+  function pushGuard() {
+    window.history.pushState({ nvGuard: true }, '', window.location.href)
+  }
 
   useEffect(() => {
-    // Push one guard entry so the very first back press fires popstate
-    // instead of closing/minimising the PWA
-    window.history.pushState(null, '')
+    /* Push 3 guards on mount — belt-and-suspenders buffer */
+    pushGuard()
+    pushGuard()
+    pushGuard()
 
     function onPop() {
-      // ── Dialog is open: physical back = "Continue" (stay in app) ──
+      /*
+       * ── STEP 1: Re-arm the guard FIRST, before any other logic. ──
+       * This guarantees the app can never silently exit even if the
+       * dialog logic below throws or the component is mid-render.
+       */
+      pushGuard()
+
+      /* ── STEP 2: If dialog is open, physical back = "Continue" ── */
       if (isOpen.current) {
         isOpen.current = false
         setShow(false)
         count.current = 0
-        window.history.pushState(null, '')   // re-arm guard
+        clearTimeout(resetTimer.current)
         return
       }
 
-      // ── Always re-push guard so next press is also caught ──
-      window.history.pushState(null, '')
-
-      // ── Increment counter ──
+      /* ── STEP 3: Count consecutive presses ── */
       count.current += 1
 
-      // ── Reset counter after 3 s of no further presses ──
       clearTimeout(resetTimer.current)
-      resetTimer.current = setTimeout(() => { count.current = 0 }, 3000)
-
-      // ── After 3 consecutive presses → show dialog ──
-      if (count.current >= 3) {
-        clearTimeout(resetTimer.current)
+      resetTimer.current = setTimeout(() => {
         count.current = 0
+      }, 3000)
+
+      /* ── STEP 4: After 3 presses → show confirmation dialog ── */
+      if (count.current >= 3) {
+        count.current = 0
+        clearTimeout(resetTimer.current)
         isOpen.current = true
         setShow(true)
       }
@@ -55,14 +64,13 @@ export default function BackPressGuard() {
     isOpen.current = false
     setShow(false)
     count.current = 0
-    window.history.pushState(null, '')   // re-arm guard
   }
 
-  function handleClose() {
+  function handleLeave() {
     isOpen.current = false
     setShow(false)
-    window.close()                                  // closes PWA on Android
-    setTimeout(() => { window.location.href = '/' }, 200)  // browser fallback
+    /* Navigate to home — works in both browser and PWA standalone mode */
+    window.location.href = '/'
   }
 
   if (!show) return null
@@ -89,7 +97,6 @@ export default function BackPressGuard() {
         boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
       }}>
 
-        {/* Icon */}
         <div style={{
           width: '56px', height: '56px', borderRadius: '50%',
           background: '#E8F5EE',
@@ -116,7 +123,7 @@ export default function BackPressGuard() {
           marginBottom: '24px',
           fontFamily: 'var(--font-inter, Inter, sans-serif)',
         }}>
-          Are you sure you want to close the app?
+          Do you want to leave the site or stay and continue?
         </p>
 
         <div style={{ display: 'flex', gap: '10px' }}>
@@ -133,7 +140,7 @@ export default function BackPressGuard() {
             Continue
           </button>
           <button
-            onClick={handleClose}
+            onClick={handleLeave}
             style={{
               flex: 1, padding: '13px',
               border: 'none', borderRadius: '12px',
@@ -142,7 +149,7 @@ export default function BackPressGuard() {
               fontFamily: 'var(--font-inter, Inter, sans-serif)',
             }}
           >
-            Close App
+            Leave Site
           </button>
         </div>
       </div>

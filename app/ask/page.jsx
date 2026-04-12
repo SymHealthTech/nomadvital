@@ -4,7 +4,6 @@ import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { useSession, signIn } from 'next-auth/react'
 import { getPersonaById } from '@/lib/travelerPersonas'
-import LeaveConfirmation from '@/components/public/LeaveConfirmation'
 
 const FREE_LIMIT = 3
 
@@ -258,7 +257,6 @@ export default function AskPage() {
 
   return (
     <div className="ask-outer" style={{ background: '#F1EFE8', overflowX: 'hidden' }}>
-      <LeaveConfirmation active={messages.length > 0} />
 
       {/* Header — hidden on mobile */}
       <div className="hidden md:block" style={{ background: '#085041', padding: '28px 24px', textAlign: 'center' }}>
