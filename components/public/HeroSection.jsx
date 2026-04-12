@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { auth } from '@/lib/auth'
+import HeroInstallBadge from './HeroInstallBadge'
 
 export default async function HeroSection() {
   const session = await auth()
@@ -101,6 +102,9 @@ export default async function HeroSection() {
               {isLoggedIn ? 'Unlock unlimited questions and all 50+ guides' : 'Cancel anytime · No credit card · Takes 30 seconds'}
             </p>
           )}
+
+          {/* Persistent PWA install badge — hidden when already running as installed app */}
+          <HeroInstallBadge />
         </div>
       </div>
     </section>

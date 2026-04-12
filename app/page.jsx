@@ -9,7 +9,6 @@ import ReviewsSection from '@/components/public/ReviewsSection'
 import FAQSection from '@/components/public/FAQSection'
 import PricingSection from '@/components/public/PricingSection'
 import FadeInSection from '@/components/public/FadeInSection'
-import AppInstallSection from '@/components/public/AppInstallSection'
 
 export const metadata = {
   title: 'NomadVital — AI Health Advisor for Travelers | Food Safety & Nutrition',
@@ -63,9 +62,6 @@ export default function HomePage() {
       </FadeInSection>
       <FadeInSection delay={100}>
         <HowItWorksSection />
-      </FadeInSection>
-      <FadeInSection delay={100}>
-        <AppInstallSection />
       </FadeInSection>
       <FadeInSection delay={100}>
         <ChatDemo />

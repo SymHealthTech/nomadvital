@@ -156,6 +156,24 @@ export default function AskPage() {
   const [paywallActive, setPaywallActive] = useState(false)
   const bottomRef = useRef(null)
   const inputRef = useRef(null)
+  const deviceIdRef = useRef(null)
+
+  // Generate / retrieve a persistent device ID (survives PWA close/reopen)
+  useEffect(() => {
+    try {
+      let id = localStorage.getItem('nvDeviceId')
+      if (!id) {
+        id = crypto.randomUUID()
+        localStorage.setItem('nvDeviceId', id)
+      }
+      deviceIdRef.current = id
+    } catch {
+      // localStorage blocked (private mode edge case) — use a session fallback
+      if (!deviceIdRef.current) {
+        deviceIdRef.current = Math.random().toString(36).slice(2)
+      }
+    }
+  }, [])
 
   // Auto guest session for unauthenticated visitors
   useEffect(() => {
@@ -196,7 +214,7 @@ export default function AskPage() {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: trimmed, personaId, history }),
+        body: JSON.stringify({ message: trimmed, personaId, history, deviceId: deviceIdRef.current }),
       })
       const data = await res.json()
 
@@ -286,11 +304,11 @@ export default function AskPage() {
               </div>
             </div>
             {/* Mobile: traveler category + change link */}
-            <div className="md:hidden" style={{ textAlign: 'right', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '2px' }}>
-              <div style={{ fontSize: '11px', color: '#E1F5EE', fontFamily: 'var(--font-inter, Inter, sans-serif)', whiteSpace: 'nowrap', lineHeight: '1.2' }}>
+            <div className="md:hidden" style={{ textAlign: 'right', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '1px' }}>
+              <div style={{ fontSize: '11px', color: '#E1F5EE', fontFamily: 'var(--font-inter, Inter, sans-serif)', whiteSpace: 'nowrap', lineHeight: '1.1' }}>
                 {persona.emoji} {persona.name}
               </div>
-              <Link href="/dashboard" style={{ fontSize: '10px', color: '#5DCAA5', fontFamily: 'var(--font-inter, Inter, sans-serif)', textDecoration: 'none', lineHeight: '1.2' }}>
+              <Link href="/dashboard" style={{ fontSize: '10px', color: '#5DCAA5', fontFamily: 'var(--font-inter, Inter, sans-serif)', textDecoration: 'none', lineHeight: '1.1' }}>
                 Change
               </Link>
             </div>

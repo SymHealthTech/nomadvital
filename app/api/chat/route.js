@@ -16,18 +16,21 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { message, personaId, history } = await request.json()
+  const { message, personaId, history, deviceId } = await request.json()
 
   if (!message || typeof message !== 'string' || message.trim().length === 0) {
     return NextResponse.json({ error: 'Message is required.' }, { status: 400 })
   }
 
-  // Guest users — enforce daily limit tracked by IP address
+  // Guest users — enforce daily limit tracked by persistent device ID
+  // (falls back to IP when deviceId is absent so server-side tools still work)
   if (session.user.isGuest) {
-    const ip =
+    const identifier =
+      (typeof deviceId === 'string' && deviceId.length > 4 ? deviceId : null) ||
       request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
       request.headers.get('x-real-ip') ||
       'unknown'
+
     const today = new Date().toDateString()
 
     try {
@@ -36,10 +39,11 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Service temporarily unavailable.' }, { status: 503 })
     }
 
-    let usage = await GuestUsage.findOne({ ip })
+    let usage = await GuestUsage.findOne({ ip: identifier })
     if (!usage) {
-      usage = new GuestUsage({ ip, count: 0, date: today })
+      usage = new GuestUsage({ ip: identifier, count: 0, date: today })
     } else if (usage.date !== today) {
+      // New day — reset the daily counter
       usage.count = 0
       usage.date = today
     }

@@ -1,3 +1,5 @@
+import HowItWorksInstallCard from './HowItWorksInstallCard'
+
 export default function HowItWorksSection() {
   const steps = [
     {
@@ -164,6 +166,9 @@ export default function HowItWorksSection() {
             ))}
           </div>
         </div>
+
+        {/* Permanent PWA install card — auto-hides when already using as installed app */}
+        <HowItWorksInstallCard />
       </div>
 
     </section>
