@@ -162,7 +162,7 @@ export default function PWAInstallModal() {
                 textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '12px',
               }}>
                 {[
-                  'Tap the Share  button in Safari's bottom bar',
+                  "Tap the Share button in Safari's bottom bar",
                   'Scroll and tap "Add to Home Screen"',
                   'Tap "Add" in the top-right corner',
                 ].map((text, i) => (
