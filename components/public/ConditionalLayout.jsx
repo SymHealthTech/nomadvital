@@ -19,7 +19,6 @@ export default function ConditionalLayout({ children }) {
   useEffect(() => {
     function detect() {
       const standalone =
-        localStorage.getItem('nvPWA') === '1' ||
         window.matchMedia('(display-mode: standalone)').matches ||
         !!window.navigator.standalone ||
         document.referrer.includes('android-app://')

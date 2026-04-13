@@ -71,7 +71,7 @@ export default function RootLayout({ children }) {
       </head>
       <body className="font-inter min-h-screen flex flex-col">
         {/* Detect PWA mode BEFORE React hydrates — sets .pwa-mode on body immediately */}
-        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var s=localStorage.getItem('nvPWA')==='1'||window.matchMedia('(display-mode: standalone)').matches||!!window.navigator.standalone||document.referrer.indexOf('android-app://')!==-1;if(s){document.body.classList.add('pwa-mode');window.__NV_PWA__=true;}}catch(e){}})();` }} />
+        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var s=window.matchMedia('(display-mode: standalone)').matches||!!window.navigator.standalone||document.referrer.indexOf('android-app://')!==-1;if(s){document.body.classList.add('pwa-mode');window.__NV_PWA__=true;}}catch(e){}})();` }} />
         <Providers>
           <ConditionalLayout>{children}</ConditionalLayout>
         </Providers>

@@ -13,9 +13,7 @@ export default function PWALaunch() {
   const router = useRouter()
 
   useEffect(() => {
-    try {
-      localStorage.setItem('nvPWA', '1')
-    } catch (_) {}
+    // Only redirect — detection relies solely on matchMedia/navigator.standalone
     router.replace('/auth/redirect')
   }, [router])
 
