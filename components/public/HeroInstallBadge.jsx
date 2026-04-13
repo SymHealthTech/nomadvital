@@ -18,14 +18,24 @@ export default function HeroInstallBadge() {
       setPlatform('installed')
       return
     }
-    const ua  = navigator.userAgent.toLowerCase()
-    const ios = /iphone|ipad|ipod/.test(ua) && !window.navigator.standalone
-    if (ios) { setPlatform('ios'); return }
-    if (/android/.test(ua)) { setPlatform('android'); return }
-    setPlatform('desktop')
 
+    // Register beforeinstallprompt FIRST — before any early returns
+    // so Android and desktop both capture it
     const handler = e => { e.preventDefault(); setPrompt(e) }
     window.addEventListener('beforeinstallprompt', handler)
+
+    const ua  = navigator.userAgent.toLowerCase()
+    const ios = /iphone|ipad|ipod/.test(ua) && !window.navigator.standalone
+    if (ios) {
+      setPlatform('ios')
+      return () => window.removeEventListener('beforeinstallprompt', handler)
+    }
+    if (/android/.test(ua)) {
+      setPlatform('android')
+      return () => window.removeEventListener('beforeinstallprompt', handler)
+    }
+    // Desktop — hide (install-from-desktop is not a priority use case)
+    setPlatform('desktop')
     return () => window.removeEventListener('beforeinstallprompt', handler)
   }, [])
 
@@ -37,7 +47,8 @@ export default function HeroInstallBadge() {
     setPrompt(null)
   }
 
-  if (!platform || platform === 'installed' || done) return null
+  // Hide when installed, not detected, done, or on desktop
+  if (!platform || platform === 'installed' || platform === 'desktop' || done) return null
 
   const isIOS = platform === 'ios'
 

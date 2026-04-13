@@ -17,14 +17,23 @@ export default function HowItWorksInstallCard() {
       setPlatform('installed')
       return
     }
-    const ua  = navigator.userAgent.toLowerCase()
-    const ios = /iphone|ipad|ipod/.test(ua) && !window.navigator.standalone
-    if (ios) { setPlatform('ios'); return }
-    if (/android/.test(ua)) { setPlatform('android'); return }
-    setPlatform('desktop')
 
+    // Register beforeinstallprompt FIRST — before any early returns
     const handler = e => { e.preventDefault(); setPrompt(e) }
     window.addEventListener('beforeinstallprompt', handler)
+
+    const ua  = navigator.userAgent.toLowerCase()
+    const ios = /iphone|ipad|ipod/.test(ua) && !window.navigator.standalone
+    if (ios) {
+      setPlatform('ios')
+      return () => window.removeEventListener('beforeinstallprompt', handler)
+    }
+    if (/android/.test(ua)) {
+      setPlatform('android')
+      return () => window.removeEventListener('beforeinstallprompt', handler)
+    }
+    // Desktop — hide the card (mobile-only feature)
+    setPlatform('desktop')
     return () => window.removeEventListener('beforeinstallprompt', handler)
   }, [])
 
@@ -36,11 +45,11 @@ export default function HowItWorksInstallCard() {
     setPrompt(null)
   }
 
-  if (!platform || platform === 'installed' || done) return null
+  // Hide when installed, not detected, done, or on desktop
+  if (!platform || platform === 'installed' || platform === 'desktop' || done) return null
 
   const isIOS     = platform === 'ios'
   const isAndroid = platform === 'android'
-  const isDesktop = platform === 'desktop'
 
   return (
     <div style={{ marginTop: '40px' }}>
@@ -78,7 +87,7 @@ export default function HowItWorksInstallCard() {
               fontFamily: 'var(--font-inter, Inter, sans-serif)',
               marginBottom: '3px',
             }}>
-              {isDesktop ? 'Install on your desktop' : 'Add to your home screen'}
+              Add to your home screen
             </div>
             <div style={{
               fontSize: '12px', color: '#9FE1CB', lineHeight: '1.5',
@@ -165,7 +174,7 @@ export default function HowItWorksInstallCard() {
                 <path d="M12 18v-6M9 15l3 3 3-3M4 12v7a1 1 0 001 1h14a1 1 0 001-1v-7"/>
               </svg>
               {prompt
-                ? (isDesktop ? 'Install on Desktop' : 'Install Android App')
+                ? 'Install App'
                 : 'Use browser menu → Install'}
             </button>
           )}

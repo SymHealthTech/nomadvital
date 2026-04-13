@@ -303,10 +303,16 @@ Keep each meal description to 1-2 sentences. Be specific about local dishes avai
 
       {/* Form */}
       <form onSubmit={handleGenerate} style={{
-        background: '#fff', border: '1px solid #D3D1C7', borderRadius: '14px', padding: '28px',
+        background: '#fff', border: '1px solid #D3D1C7', borderRadius: '14px',
+        padding: 'clamp(16px, 4vw, 28px)',
         marginBottom: '24px',
       }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+        <style>{`
+          .planner-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+          @media (max-width: 520px) { .planner-grid { grid-template-columns: 1fr; } }
+          body.pwa-mode .planner-grid { grid-template-columns: 1fr; }
+        `}</style>
+        <div className="planner-grid">
           <div>
             <label style={{ display: 'block', fontSize: '12px', fontWeight: '500', color: '#5F5E5A', marginBottom: '5px', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
               Destination
