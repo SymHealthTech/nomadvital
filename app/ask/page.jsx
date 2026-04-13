@@ -282,7 +282,7 @@ export default function AskPage() {
         <div className="ask-card md:rounded-2xl md:border md:border-[#D3D1C7] md:shadow-lg" style={{ background: '#fff', overflow: 'hidden' }}>
 
           {/* Chat header bar */}
-          <div style={{ background: '#085041', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div className="ask-chat-header" style={{ background: '#085041', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
             {/* Logo icon — hidden on mobile (navbar already shows NomadVital branding) */}
             <div className="hidden md:flex" style={{ width: '28px', height: '28px', background: 'rgba(255,255,255,0.15)', borderRadius: '50%', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <svg width="14" height="14" viewBox="0 0 18 18" fill="none">

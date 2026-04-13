@@ -5,9 +5,8 @@ import { usePathname } from 'next/navigation'
 
 const TABS = [
   {
-    href: '/',
+    href: '/dashboard',
     label: 'Home',
-    exact: true,
     icon: (active) => (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
         stroke={active ? '#085041' : '#9B9A96'} strokeWidth={active ? 2.2 : 1.8}
@@ -16,11 +15,11 @@ const TABS = [
         <path d="M9 21V12h6v9"/>
       </svg>
     ),
+    isActive: (p) => p === '/dashboard' || p === '/',
   },
   {
     href: '/destinations',
     label: 'Explore',
-    exact: false,
     icon: (active) => (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
         stroke={active ? '#085041' : '#9B9A96'} strokeWidth={active ? 2.2 : 1.8}
@@ -30,12 +29,12 @@ const TABS = [
         <path d="M3 12h18"/>
       </svg>
     ),
+    isActive: (p) => p.startsWith('/destinations'),
   },
   {
     href: '/ask',
     label: 'Ask AI',
     center: true,
-    exact: true,
     icon: () => (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
         stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -43,11 +42,11 @@ const TABS = [
         <path d="M12 8v4M12 16h.01" strokeWidth="2.5"/>
       </svg>
     ),
+    isActive: (p) => p === '/ask',
   },
   {
     href: '/blog',
     label: 'Blog',
-    exact: false,
     icon: (active) => (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
         stroke={active ? '#085041' : '#9B9A96'} strokeWidth={active ? 2.2 : 1.8}
@@ -56,11 +55,11 @@ const TABS = [
         <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>
       </svg>
     ),
+    isActive: (p) => p.startsWith('/blog'),
   },
   {
     href: '/dashboard',
     label: 'Me',
-    exact: false,
     icon: (active) => (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
         stroke={active ? '#085041' : '#9B9A96'} strokeWidth={active ? 2.2 : 1.8}
@@ -69,25 +68,22 @@ const TABS = [
         <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
       </svg>
     ),
+    isActive: (p) => p === '/dashboard' || p === '/',
   },
 ]
 
 export default function BottomTabBar() {
   const pathname = usePathname()
 
-  function isActive(tab) {
-    if (tab.exact) return pathname === tab.href
-    return pathname.startsWith(tab.href)
-  }
-
   return (
     <nav className="pwa-bottom-bar" aria-label="Main navigation">
       {TABS.map((tab) => {
-        const active = isActive(tab)
+        const active = tab.isActive(pathname)
 
         if (tab.center) {
           return (
-            <Link key={tab.href} href={tab.href} className="pwa-tab-center" aria-label={tab.label} aria-current={active ? 'page' : undefined}>
+            <Link key={tab.label} href={tab.href} className="pwa-tab-center"
+              aria-label={tab.label} aria-current={active ? 'page' : undefined}>
               <div className={`pwa-tab-fab${active ? ' pwa-tab-fab-active' : ''}`}>
                 {tab.icon(active)}
               </div>
@@ -97,7 +93,8 @@ export default function BottomTabBar() {
         }
 
         return (
-          <Link key={tab.href} href={tab.href} className="pwa-tab" aria-current={active ? 'page' : undefined}>
+          <Link key={tab.label} href={tab.href} className="pwa-tab"
+            aria-current={active ? 'page' : undefined}>
             <div className={`pwa-tab-icon${active ? ' pwa-tab-icon-active' : ''}`}>
               {tab.icon(active)}
             </div>

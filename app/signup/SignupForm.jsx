@@ -72,7 +72,7 @@ export default function SignupForm() {
   }
 
   return (
-    <div style={{
+    <div className="auth-screen-outer" style={{
       minHeight: '100vh',
       display: 'flex',
       alignItems: 'center',
@@ -80,7 +80,7 @@ export default function SignupForm() {
       padding: '24px 16px',
       background: '#F1EFE8',
     }}>
-      <div style={{
+      <div className="auth-card" style={{
         background: '#fff',
         borderRadius: '16px',
         border: '1px solid #D3D1C7',
@@ -90,7 +90,7 @@ export default function SignupForm() {
         maxWidth: '420px',
       }}>
         {/* Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '28px', justifyContent: 'center' }}>
+        <div className="auth-logo-row" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '28px', justifyContent: 'center' }}>
           <div style={{ width: '34px', height: '34px', backgroundColor: '#1D9E75', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
               <circle cx="9" cy="9" r="7.5" stroke="#E1F5EE" strokeWidth="1"/>
