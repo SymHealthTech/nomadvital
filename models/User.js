@@ -52,6 +52,12 @@ const UserSchema = new mongoose.Schema({
     default: 'general',
   },
 
+  // Single-device session enforcement
+  // Regenerated on every login — old JWTs with a stale token are rejected
+  activeSessionToken: {
+    type: String,
+  },
+
   // Password reset
   resetPasswordToken: {
     type: String,

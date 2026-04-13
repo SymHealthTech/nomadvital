@@ -2,11 +2,14 @@
 
 import { useState } from 'react'
 import { signIn } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
 export default function LoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const otherDevice = searchParams.get('reason') === 'other_device'
+
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -89,6 +92,13 @@ export default function LoginForm() {
         <p style={{ fontSize: '13px', color: '#888780', textAlign: 'center', marginBottom: '24px', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
           Sign in to your NomadVital account
         </p>
+
+        {/* Signed out — another device logged in */}
+        {otherDevice && (
+          <div style={{ background: '#FFF7ED', border: '1px solid #FED7AA', borderRadius: '8px', padding: '10px 14px', marginBottom: '16px', fontSize: '13px', color: '#92400E', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
+            You were signed out because your account was accessed on another device.
+          </div>
+        )}
 
         {/* Error */}
         {error && (

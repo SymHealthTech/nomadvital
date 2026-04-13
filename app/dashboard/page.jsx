@@ -181,13 +181,13 @@ export default async function DashboardPage() {
           <div className="grid grid-cols-2 gap-3">
             {[
               { href: '/ask', emoji: '🤖', label: 'AI Advisor' },
-              { href: '/destinations', emoji: '🌍', label: 'Destinations' },
-              { href: '/planner', emoji: '📋', label: 'Travel Planner' },
+              { href: '/destinations', emoji: '🌍', label: 'Explore' },
+              { href: '/planner', emoji: '📋', label: 'Planner' },
               { href: '/blog', emoji: '📖', label: 'Blog' },
             ].map(item => (
-              <Link key={item.href} href={item.href} className="flex items-center gap-3 p-3 rounded-xl bg-[#F1EFE8] hover:bg-[#e8e5dc] transition-colors">
-                <span className="text-xl">{item.emoji}</span>
-                <span className="text-sm font-medium text-[#085041]">{item.label}</span>
+              <Link key={item.href} href={item.href} className="flex items-center gap-2 p-3 rounded-xl bg-[#F1EFE8] hover:bg-[#e8e5dc] transition-colors overflow-hidden">
+                <span className="text-xl flex-shrink-0">{item.emoji}</span>
+                <span className="text-sm font-medium text-[#085041] truncate">{item.label}</span>
               </Link>
             ))}
           </div>

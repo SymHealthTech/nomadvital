@@ -5,19 +5,6 @@ import { usePathname } from 'next/navigation'
 
 const TABS = [
   {
-    href: '/dashboard',
-    label: 'Home',
-    icon: (active) => (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-        stroke={active ? '#085041' : '#9B9A96'} strokeWidth={active ? 2.2 : 1.8}
-        strokeLinecap="round" strokeLinejoin="round">
-        <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H5a1 1 0 01-1-1V9.5z"/>
-        <path d="M9 21V12h6v9"/>
-      </svg>
-    ),
-    isActive: (p) => p === '/dashboard' || p === '/',
-  },
-  {
     href: '/destinations',
     label: 'Explore',
     icon: (active) => (
@@ -30,6 +17,20 @@ const TABS = [
       </svg>
     ),
     isActive: (p) => p.startsWith('/destinations'),
+  },
+  {
+    href: '/planner',
+    label: 'Planner',
+    icon: (active) => (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+        stroke={active ? '#085041' : '#9B9A96'} strokeWidth={active ? 2.2 : 1.8}
+        strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="4" width="18" height="18" rx="2"/>
+        <path d="M16 2v4M8 2v4M3 10h18"/>
+        <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/>
+      </svg>
+    ),
+    isActive: (p) => p.startsWith('/planner'),
   },
   {
     href: '/ask',
@@ -68,7 +69,7 @@ const TABS = [
         <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
       </svg>
     ),
-    isActive: (p) => p === '/dashboard' || p === '/',
+    isActive: (p) => p === '/dashboard',
   },
 ]
 

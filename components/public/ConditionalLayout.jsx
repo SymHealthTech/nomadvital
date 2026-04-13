@@ -1,7 +1,8 @@
 'use client'
 
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useEffect } from 'react'
+import { useSession, signOut } from 'next-auth/react'
 import Navbar from './Navbar'
 import Footer from './Footer'
 import MobileStickyBar from './MobileStickyBar'
@@ -10,12 +11,17 @@ import BackPressGuard from './BackPressGuard'
 import BottomTabBar from './BottomTabBar'
 import PWAHeader from './PWAHeader'
 
+const AUTH_PAGES = new Set(['/login', '/signup', '/forgot-password', '/pwa-launch'])
+
 export default function ConditionalLayout({ children }) {
   const pathname = usePathname()
-  const isAdmin = pathname.startsWith('/admin')
-  const isAsk = pathname === '/ask'
+  const router   = useRouter()
+  const { data: session, status } = useSession()
 
-  /* Sync PWA detection after hydration (inline script handles the first paint) */
+  const isAdmin = pathname.startsWith('/admin')
+  const isAsk   = pathname === '/ask'
+
+  /* ── PWA detection ── */
   useEffect(() => {
     function detect() {
       const standalone =
@@ -34,6 +40,23 @@ export default function ConditionalLayout({ children }) {
     return () => mq.removeEventListener('change', detect)
   }, [])
 
+  /* ── PWA: force sign-in (no guest), handle invalidated session ── */
+  useEffect(() => {
+    const isPWA = document.body.classList.contains('pwa-mode')
+    if (!isPWA) return
+
+    // No guest browsing in PWA — redirect unauthenticated users to login
+    if (status === 'unauthenticated' && !AUTH_PAGES.has(pathname)) {
+      router.replace('/login')
+      return
+    }
+
+    // Kick out sessions that were invalidated by a newer login on another device
+    if (status === 'authenticated' && session?.user?.invalidated) {
+      signOut({ callbackUrl: '/login?reason=other_device' })
+    }
+  }, [status, session, pathname, router])
+
   if (isAdmin) {
     return <main className="flex-1">{children}</main>
   }
@@ -50,14 +73,14 @@ export default function ConditionalLayout({ children }) {
         <PWAHeader />
       </div>
 
-      {/* Install banner — hidden by CSS when body.pwa-mode */}
+      {/* Install banner — only in browser */}
       <div className="pwa-hide install-banner">
         <InstallBanner />
       </div>
 
       <main className="flex-1">{children}</main>
 
-      {/* Footer + mobile sticky — hidden by CSS when body.pwa-mode */}
+      {/* Footer + mobile sticky — hidden in PWA */}
       <div className="pwa-hide">
         <Footer mobileHidden={isAsk} />
       </div>
@@ -67,7 +90,7 @@ export default function ConditionalLayout({ children }) {
 
       <BackPressGuard />
 
-      {/* PWA native bottom tab bar — shown by CSS when body.pwa-mode */}
+      {/* PWA bottom tab bar */}
       <div className="pwa-show">
         <BottomTabBar />
       </div>

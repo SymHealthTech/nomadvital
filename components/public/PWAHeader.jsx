@@ -51,19 +51,18 @@ export default function PWAHeader() {
       {/* Left — back button or logo */}
       <div className="pwa-header-left">
         {isRootTab ? (
-          <Link href="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: '7px', textDecoration: 'none' }}>
-            <div style={{
-              width: '30px', height: '30px', borderRadius: '9px',
-              background: 'rgba(255,255,255,0.18)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              <svg width="15" height="15" viewBox="0 0 18 18" fill="none">
-                <circle cx="9" cy="9" r="7.5" stroke="rgba(255,255,255,0.7)" strokeWidth="1"/>
-                <path d="M9 2.5L10.8 6L14.5 4.8L12.5 8.5L14.5 12.2L10.8 11L9 14.5L7.2 11L3.5 12.2L5.5 8.5L3.5 4.8L7.2 6Z" fill="rgba(255,255,255,0.9)" opacity="0.85"/>
-                <circle cx="9" cy="9" r="2" fill="#1D9E75"/>
-              </svg>
-            </div>
-          </Link>
+          /* Logo — just branding on root tabs, not a nav button */
+          <div style={{
+            width: '30px', height: '30px', borderRadius: '9px',
+            background: 'rgba(255,255,255,0.18)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <svg width="15" height="15" viewBox="0 0 18 18" fill="none">
+              <circle cx="9" cy="9" r="7.5" stroke="rgba(255,255,255,0.7)" strokeWidth="1"/>
+              <path d="M9 2.5L10.8 6L14.5 4.8L12.5 8.5L14.5 12.2L10.8 11L9 14.5L7.2 11L3.5 12.2L5.5 8.5L3.5 4.8L7.2 6Z" fill="rgba(255,255,255,0.9)" opacity="0.85"/>
+              <circle cx="9" cy="9" r="2" fill="#1D9E75"/>
+            </svg>
+          </div>
         ) : (
           <button onClick={() => router.back()} className="pwa-back-btn" aria-label="Go back">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none"

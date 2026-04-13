@@ -174,10 +174,13 @@ export default function AskPage() {
     }
   }, [])
 
-  // Auto guest session for unauthenticated visitors
+  // Auto guest session — only in browser, never in PWA
   useEffect(() => {
     if (status === 'unauthenticated') {
-      signIn('credentials', { type: 'guest', redirect: false })
+      const isPWA = document.body.classList.contains('pwa-mode')
+      if (!isPWA) {
+        signIn('credentials', { type: 'guest', redirect: false })
+      }
     }
   }, [status])
 
