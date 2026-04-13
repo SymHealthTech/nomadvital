@@ -73,18 +73,27 @@ export async function POST(request) {
       emailVerificationExpires: verificationExpires,
     })
 
-    // Send verification email (non-fatal — account is created regardless)
+    // Send verification email
     const verifyUrl = `${process.env.NEXTAUTH_URL}/verify-email?token=${verificationToken}`
-    await sendEmail({
-      to: email.toLowerCase(),
-      subject: 'Verify your NomadVital email',
-      html: verifyEmailHtml({ name, verifyUrl }),
-    }).catch(err => {
+    let emailError = null
+    try {
+      await sendEmail({
+        to: email.toLowerCase(),
+        subject: 'Verify your NomadVital email',
+        html: verifyEmailHtml({ name, verifyUrl }),
+      })
+    } catch (err) {
+      emailError = err.message
       console.error('[Signup] Failed to send verification email:', err.message)
-    })
+    }
 
     return NextResponse.json(
-      { success: true, requiresVerification: true },
+      {
+        success: true,
+        requiresVerification: true,
+        // Surface email errors in dev so you can see what went wrong
+        ...(emailError && process.env.NODE_ENV !== 'production' && { emailError }),
+      },
       { status: 201 }
     )
   } catch {

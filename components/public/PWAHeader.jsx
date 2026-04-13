@@ -4,24 +4,41 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 
-// Root tabs have the logo icon instead of a back button
+// Root tabs — show the logo icon, no back button
 const ROOT_TABS = new Set(['/', '/ask', '/destinations', '/blog', '/dashboard', '/planner'])
 
 const PAGE_META = {
-  '/':             { title: 'NomadVital',      showLogo: true  },
-  '/ask':          { title: 'Ask AI',           showLogo: false },
-  '/destinations': { title: 'Destinations',     showLogo: false },
-  '/blog':         { title: 'Blog',             showLogo: false },
-  '/dashboard':    { title: 'My Account',       showLogo: false },
-  '/planner':      { title: 'Travel Planner',   showLogo: false },
-  '/pricing':      { title: 'Pricing',          showLogo: false },
-  '/privacy':      { title: 'Privacy Policy',   showLogo: false },
-  '/disclaimer':   { title: 'Disclaimer',       showLogo: false },
-  '/contact':      { title: 'Contact',          showLogo: false },
-  '/login':        { title: 'Sign In',          showLogo: false },
-  '/signup':       { title: 'Create Account',   showLogo: false },
+  '/':             { title: 'NomadVital',       showLogo: true  },
+  '/ask':          { title: 'Ask AI',            showLogo: false },
+  '/destinations': { title: 'Destinations',      showLogo: false },
+  '/blog':         { title: 'Blog',              showLogo: false },
+  '/dashboard':    { title: 'My Account',        showLogo: false },
+  '/planner':      { title: 'Travel Planner',    showLogo: false },
+  '/pricing':      { title: 'Pricing',           showLogo: false },
+  '/privacy':      { title: 'Privacy Policy',    showLogo: false },
+  '/disclaimer':   { title: 'Disclaimer',        showLogo: false },
+  '/contact':      { title: 'Contact',           showLogo: false },
+  '/login':        { title: 'Sign In',           showLogo: false },
+  '/signup':       { title: 'Create Account',    showLogo: false },
   '/forgot-password': { title: 'Reset Password', showLogo: false },
   '/verify-email':    { title: 'Verify Email',   showLogo: false },
+}
+
+/**
+ * Return the logical parent path for a given sub-page,
+ * so the back button always goes to the right place even when
+ * there is no browser history (e.g. deep link or first navigation).
+ */
+function getParentPath(pathname) {
+  if (pathname.startsWith('/blog/'))         return '/blog'
+  if (pathname.startsWith('/destinations/')) return '/destinations'
+  if (pathname === '/pricing')               return '/dashboard'
+  if (pathname === '/privacy' ||
+      pathname === '/disclaimer' ||
+      pathname === '/contact')               return '/'
+  if (pathname === '/forgot-password')       return '/login'
+  if (pathname === '/verify-email')          return '/login'
+  return null // fall back to router.back()
 }
 
 function getPageMeta(pathname) {
@@ -49,12 +66,17 @@ export default function PWAHeader() {
     : null
 
   function handleBack() {
-    // Set flag so BackPressGuard knows this is a header-initiated back,
-    // not a hardware back button press
-    if (typeof window !== 'undefined') {
-      window.__NV_HEADER_BACK__ = true
+    const parent = getParentPath(pathname)
+    if (parent) {
+      // Deterministic navigation — always reaches the right page
+      router.push(parent)
+    } else {
+      // For unknown sub-pages: flag BackPressGuard, then go back
+      if (typeof window !== 'undefined') {
+        window.__NV_HEADER_BACK__ = true
+      }
+      router.back()
     }
-    router.back()
   }
 
   return (
@@ -63,7 +85,6 @@ export default function PWAHeader() {
       {/* Left — back button or logo */}
       <div className="pwa-header-left">
         {isRootTab ? (
-          /* Logo — just branding on root tabs, not a nav button */
           <div style={{
             width: '30px', height: '30px', borderRadius: '9px',
             background: 'rgba(255,255,255,0.18)',

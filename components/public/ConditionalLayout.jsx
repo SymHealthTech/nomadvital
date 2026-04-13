@@ -1,7 +1,7 @@
 'use client'
 
 import { usePathname, useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import Navbar from './Navbar'
 import Footer from './Footer'
@@ -11,14 +11,9 @@ import BackPressGuard from './BackPressGuard'
 import BottomTabBar from './BottomTabBar'
 import PWAHeader from './PWAHeader'
 
-const AUTH_PAGES = new Set(['/login', '/signup', '/forgot-password', '/pwa-launch', '/verify-email'])
-
-// Read the synchronous PWA flag set by the inline script in layout.jsx
-// This is available before React hydrates, so there is no flash of wrong content.
-function getInitialPWA() {
-  if (typeof window === 'undefined') return false
-  return !!window.__NV_PWA__
-}
+const AUTH_PAGES = new Set([
+  '/login', '/signup', '/forgot-password', '/pwa-launch', '/verify-email',
+])
 
 export default function ConditionalLayout({ children }) {
   const pathname = usePathname()
@@ -28,52 +23,63 @@ export default function ConditionalLayout({ children }) {
   const isAdmin = pathname.startsWith('/admin')
   const isAsk   = pathname === '/ask'
 
-  // Initialise from the synchronous inline script flag — no layout shift
-  const [isPWA, setIsPWA] = useState(getInitialPWA)
-
-  /* ── PWA detection (confirm/update after hydration) ── */
+  /* ── PWA detection: set body class and confirm session ── */
   useEffect(() => {
+    // 1. Detect standalone mode and keep body class in sync
     function detect() {
       const standalone =
         window.matchMedia('(display-mode: standalone)').matches ||
         !!window.navigator.standalone ||
         document.referrer.includes('android-app://')
-      setIsPWA(standalone)
       if (standalone) {
         document.body.classList.add('pwa-mode')
+        window.__NV_PWA__ = true
       } else {
         document.body.classList.remove('pwa-mode')
+        window.__NV_PWA__ = false
       }
+      return standalone
     }
-    detect()
-    const mq = window.matchMedia('(display-mode: standalone)')
+
+    const isPWA = detect()
+    const mq    = window.matchMedia('(display-mode: standalone)')
     mq.addEventListener('change', detect)
+
+    // 2. Guard: hide protected content until auth confirmed
+    //    Controlled via pwa-ready class (see globals.css .pwa-guard rule)
+    if (isPWA) {
+      const isAuthPage = AUTH_PAGES.has(pathname)
+
+      if (isAuthPage || status === 'authenticated') {
+        // Safe to show content
+        document.body.classList.add('pwa-ready')
+      } else if (status === 'unauthenticated') {
+        // Not signed in on a protected page — redirect, keep content hidden
+        document.body.classList.remove('pwa-ready')
+        router.replace('/login')
+      } else {
+        // status === 'loading' — content stays hidden via CSS; wait for next run
+        document.body.classList.remove('pwa-ready')
+      }
+
+      // Kick out sessions invalidated by a newer login on another device
+      if (status === 'authenticated' && session?.user?.invalidated) {
+        signOut({ callbackUrl: '/login?reason=other_device' })
+      }
+    } else {
+      // Not PWA — always show content
+      document.body.classList.add('pwa-ready')
+    }
+
     return () => mq.removeEventListener('change', detect)
-  }, [])
-
-  /* ── PWA: force sign-in (no guest), handle invalidated session ── */
-  useEffect(() => {
-    if (!isPWA) return
-
-    if (status === 'unauthenticated' && !AUTH_PAGES.has(pathname)) {
-      router.replace('/login')
-      return
-    }
-
-    if (status === 'authenticated' && session?.user?.invalidated) {
-      signOut({ callbackUrl: '/login?reason=other_device' })
-    }
-  }, [status, session, pathname, router, isPWA])
+  }, [status, session, pathname, router])
 
   if (isAdmin) {
     return <main className="flex-1">{children}</main>
   }
 
-  // In PWA mode, hide protected page content until the session is confirmed.
-  // This prevents a brief flash of page content before the redirect fires
-  // when the user is not authenticated.
-  const isProtectedPWA = isPWA && !AUTH_PAGES.has(pathname)
-  const showContent     = !isProtectedPWA || status === 'authenticated'
+  // Determine if the current page is an auth page (always visible)
+  const isAuthPage = AUTH_PAGES.has(pathname)
 
   return (
     <>
@@ -92,23 +98,13 @@ export default function ConditionalLayout({ children }) {
         <InstallBanner />
       </div>
 
-      <main className="flex-1">
-        {showContent ? children : (
-          // Minimal loading state — shown while session check completes in PWA
-          <div style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            height: 'calc(100dvh - 56px - 68px)',
-          }}>
-            <div style={{
-              width: '28px', height: '28px',
-              border: '3px solid #E1F5EE',
-              borderTopColor: '#1D9E75',
-              borderRadius: '50%',
-              animation: 'nvSpin 0.7s linear infinite',
-            }} />
-            <style>{`@keyframes nvSpin { to { transform: rotate(360deg); } }`}</style>
-          </div>
-        )}
+      {/*
+        .pwa-guard  — hidden by default in PWA (body.pwa-mode .pwa-guard { visibility:hidden })
+                      revealed when body.pwa-mode.pwa-ready is set (auth confirmed)
+        .pwa-guard-auth — always visible (used for auth pages like /login)
+      */}
+      <main className={`flex-1 ${isAuthPage ? 'pwa-guard-auth' : 'pwa-guard'}`}>
+        {children}
       </main>
 
       {/* Footer + mobile sticky — hidden in PWA */}

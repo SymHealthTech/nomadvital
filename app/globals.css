@@ -130,6 +130,18 @@ body.pwa-mode .pwa-hide { display: none !important; }
   .pwa-hide { display: none !important; }
 }
 
+/* ── PWA auth guard: hide protected content until JS confirms session ──
+   body.pwa-mode is set synchronously by the inline script before first paint,
+   so .pwa-guard is invisible immediately — no flash of unauthenticated content.
+   ConditionalLayout adds pwa-ready once authentication is confirmed. */
+body.pwa-mode .pwa-guard {
+  visibility: hidden;
+}
+body.pwa-mode.pwa-ready .pwa-guard,
+body.pwa-mode .pwa-guard-auth {
+  visibility: visible;
+}
+
 /* ── PWA body layout ── */
 body.pwa-mode {
   padding-top: env(safe-area-inset-top, 0px);

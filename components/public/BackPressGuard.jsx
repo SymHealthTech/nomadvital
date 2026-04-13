@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
 
 /**
  * Intercepts the hardware / browser back button in PWA mode.
@@ -16,9 +15,7 @@ import { usePathname, useRouter } from 'next/navigation'
  * popstate event is allowed through (not blocked as a hardware back press).
  */
 export default function BackPressGuard() {
-  const [show, setShow]   = useState(false)
-  const router            = useRouter()
-  const pathname          = usePathname()
+  const [show, setShow] = useState(false)
 
   const count      = useRef(0)
   const isOpen     = useRef(false)
@@ -98,12 +95,11 @@ export default function BackPressGuard() {
   function handleCloseApp() {
     isOpen.current = false
     setShow(false)
-    // Try to close the PWA window
-    try { window.close() } catch {}
-    // If still here (window.close is blocked on most Android), navigate home
-    setTimeout(() => {
-      router.replace('/dashboard')
-    }, 80)
+    // window.close() is blocked in standalone PWAs on Android.
+    // A full-page navigation to /dashboard is the closest we can get —
+    // it keeps the user inside the PWA and resets their in-app navigation.
+    // Pressing the hardware Back button once from there exits the app.
+    window.location.href = '/dashboard'
   }
 
   if (!show) return null
