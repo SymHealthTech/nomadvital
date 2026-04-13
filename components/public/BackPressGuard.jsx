@@ -2,32 +2,67 @@
 
 import { useEffect, useState, useRef } from 'react'
 
-export default function BackPressGuard() {
-  const [show, setShow]     = useState(false)
-  const count               = useRef(0)
-  const isOpen              = useRef(false)
-  const resetTimer          = useRef(null)
+/**
+ * Intercepts the hardware / browser back button.
+ *
+ * How it works (reliably, even on Android PWA):
+ *   • On mount: push ONE guard entry so the first back press fires popstate
+ *     rather than immediately closing the app.
+ *   • On every popstate (back press detected):
+ *       – Call history.go(1) to CANCEL the back navigation immediately.
+ *       – Increment a counter; reset it if 3 s pass between presses.
+ *   • After 3 consecutive presses: show "Leave NomadVital?" dialog.
+ *   • Physical back while dialog is open = "Continue" (dismiss dialog).
+ *   • "Continue" button  → dismiss, stay in app.
+ *   • "Leave Site" button → navigate to home page.
+ *
+ * Why history.go(1) instead of pushState?
+ *   Chrome (Android) silently deduplicates consecutive pushState entries that
+ *   share the same URL, so the guards evaporate and the app exits too early.
+ *   history.go(1) never modifies the history stack — it just moves the pointer
+ *   forward, which is 100 % reliable.
+ *
+ * Why intercept history.pushState?
+ *   Next.js uses pushState for every client-side page navigation.  Without
+ *   resetting the counter on forward navigation, pressing Back through 3
+ *   legitimate pages would wrongly trigger the dialog.
+ */
 
-  /* Always push with the explicit current URL — more reliable on Android WebView */
-  function pushGuard() {
-    window.history.pushState({ nvGuard: true }, '', window.location.href)
-  }
+export default function BackPressGuard() {
+  const [show, setShow]   = useState(false)
+
+  const count      = useRef(0)
+  const isOpen     = useRef(false)   // true while dialog is on screen
+  const skipNext   = useRef(false)   // skip the forward-popstate from our go(1)
+  const resetTimer = useRef(null)
 
   useEffect(() => {
-    /* Push 3 guards on mount — belt-and-suspenders buffer */
-    pushGuard()
-    pushGuard()
-    pushGuard()
+    /* ── 1. Push the initial guard ── */
+    window.history.pushState({ nvGuard: true }, '', window.location.href)
 
+    /* ── 2. Reset counter on forward navigation (Next.js page changes) ── */
+    const origPushState = window.history.pushState.bind(window.history)
+    window.history.pushState = function (state, title, url) {
+      if (!state?.nvGuard) {           // ignore our own guard pushes
+        count.current = 0
+        clearTimeout(resetTimer.current)
+      }
+      return origPushState(state, title, url)
+    }
+
+    /* ── 3. popstate handler ── */
     function onPop() {
-      /*
-       * ── STEP 1: Re-arm the guard FIRST, before any other logic. ──
-       * This guarantees the app can never silently exit even if the
-       * dialog logic below throws or the component is mid-render.
-       */
-      pushGuard()
+      /* Skip the popstate that our own history.go(1) fires */
+      if (skipNext.current) {
+        skipNext.current = false
+        return
+      }
 
-      /* ── STEP 2: If dialog is open, physical back = "Continue" ── */
+      /* ALWAYS cancel the back navigation first */
+      skipNext.current = true
+      window.history.go(1)
+
+      /* Physical back while dialog is showing = "Continue" */
       if (isOpen.current) {
         isOpen.current = false
         setShow(false)
@@ -36,15 +71,12 @@ export default function BackPressGuard() {
         return
       }
 
-      /* ── STEP 3: Count consecutive presses ── */
+      /* Increment counter, auto-reset after 3 s of inactivity */
       count.current += 1
-
       clearTimeout(resetTimer.current)
-      resetTimer.current = setTimeout(() => {
-        count.current = 0
-      }, 3000)
+      resetTimer.current = setTimeout(() => { count.current = 0 }, 3000)
 
-      /* ── STEP 4: After 3 presses → show confirmation dialog ── */
+      /* Third consecutive press → show dialog */
       if (count.current >= 3) {
         count.current = 0
         clearTimeout(resetTimer.current)
@@ -54,8 +86,10 @@ export default function BackPressGuard() {
     }
 
     window.addEventListener('popstate', onPop)
+
     return () => {
       window.removeEventListener('popstate', onPop)
+      window.history.pushState = origPushState   // restore original
       clearTimeout(resetTimer.current)
     }
   }, [])
@@ -69,7 +103,6 @@ export default function BackPressGuard() {
   function handleLeave() {
     isOpen.current = false
     setShow(false)
-    /* Navigate to home — works in both browser and PWA standalone mode */
     window.location.href = '/'
   }
 
@@ -81,7 +114,7 @@ export default function BackPressGuard() {
       aria-modal="true"
       style={{
         position: 'fixed', inset: 0,
-        background: 'rgba(0,0,0,0.5)',
+        background: 'rgba(0,0,0,0.52)',
         zIndex: 9999,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         padding: '24px',
@@ -94,9 +127,10 @@ export default function BackPressGuard() {
         maxWidth: '300px',
         width: '100%',
         textAlign: 'center',
-        boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
+        boxShadow: '0 20px 60px rgba(0,0,0,0.22)',
       }}>
 
+        {/* Icon */}
         <div style={{
           width: '56px', height: '56px', borderRadius: '50%',
           background: '#E8F5EE',

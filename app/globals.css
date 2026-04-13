@@ -111,3 +111,192 @@ h3 {
     display: none !important;
   }
 }
+
+/* ═══════════════════════════════════════════════════════
+   PWA NATIVE APP STYLES
+   Only active when installed and running as standalone PWA
+   ═══════════════════════════════════════════════════════ */
+
+/* ── PWA Header (top bar) ── */
+.pwa-header {
+  display: none;
+}
+
+/* ── PWA Bottom Tab Bar ── */
+.pwa-bottom-bar {
+  display: none;
+}
+
+@media (display-mode: standalone) {
+
+  /* ─── Safe area: push body content below iOS status bar ─── */
+  body {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  /* ─── Hide regular navbar & install banner in PWA mode ─── */
+  .regular-navbar,
+  .install-banner {
+    display: none !important;
+  }
+
+  /* ─── Show PWA-specific top header ─── */
+  .pwa-header {
+    display: flex;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    height: 56px;
+    background: #ffffff;
+    border-bottom: 1px solid #E8E6E0;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+  }
+
+  .pwa-header-left  { width: 48px; display: flex; align-items: center; }
+  .pwa-header-title { flex: 1; text-align: center; }
+  .pwa-header-right { width: 48px; display: flex; align-items: center; justify-content: flex-end; }
+
+  .pwa-back-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .pwa-back-btn:active { background: #F1EFE8; }
+
+  /* ─── Push main content up from bottom bar ─── */
+  main {
+    padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* ─── Ask page: full height minus header + bottom bar ─── */
+  .ask-outer {
+    height: calc(100dvh - 56px - 68px - env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  /* ─── Bottom Tab Bar ─── */
+  .pwa-bottom-bar {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: #ffffff;
+    border-top: 1px solid #E8E6E0;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.07);
+    align-items: flex-end;
+    justify-content: space-around;
+    height: calc(68px + env(safe-area-inset-bottom, 0px));
+    padding: 0 4px;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* Regular tab */
+  .pwa-tab {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 8px 0 10px;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+    min-height: 60px;
+  }
+
+  .pwa-tab-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 28px;
+    border-radius: 16px;
+    transition: background 0.15s ease;
+  }
+
+  .pwa-tab-icon-active {
+    background: #E1F5EE;
+  }
+
+  .pwa-tab:active .pwa-tab-icon {
+    background: #E1F5EE;
+    transform: scale(0.92);
+  }
+
+  .pwa-tab-label {
+    font-size: 10px;
+    font-weight: 500;
+    color: #9B9A96;
+    font-family: var(--font-inter, Inter, sans-serif);
+    letter-spacing: 0.2px;
+  }
+
+  .pwa-tab-label-active {
+    color: #085041;
+    font-weight: 700;
+  }
+
+  /* Center FAB tab */
+  .pwa-tab-center {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+    padding-bottom: 10px;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .pwa-tab-fab {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    background: #085041;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(8,80,65,0.35);
+    margin-top: -20px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .pwa-tab-fab-active {
+    background: #1D9E75;
+    box-shadow: 0 4px 20px rgba(29,158,117,0.45);
+  }
+
+  .pwa-tab-center:active .pwa-tab-fab {
+    transform: scale(0.91);
+    box-shadow: 0 2px 8px rgba(8,80,65,0.25);
+  }
+
+  .pwa-tab-fab-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: #085041;
+    font-family: var(--font-inter, Inter, sans-serif);
+    letter-spacing: 0.2px;
+  }
+
+  /* ─── Improve touch targets across the app ─── */
+  button, a {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Navbar wrapper class for hiding in PWA mode */
+.regular-navbar {
+  /* default: show */
+}
