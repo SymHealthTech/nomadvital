@@ -4,7 +4,8 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 
-const ROOT_TABS = new Set(['/', '/ask', '/destinations', '/blog', '/dashboard'])
+// Root tabs have the logo icon instead of a back button
+const ROOT_TABS = new Set(['/', '/ask', '/destinations', '/blog', '/dashboard', '/planner'])
 
 const PAGE_META = {
   '/':             { title: 'NomadVital',      showLogo: true  },
@@ -19,6 +20,8 @@ const PAGE_META = {
   '/contact':      { title: 'Contact',          showLogo: false },
   '/login':        { title: 'Sign In',          showLogo: false },
   '/signup':       { title: 'Create Account',   showLogo: false },
+  '/forgot-password': { title: 'Reset Password', showLogo: false },
+  '/verify-email':    { title: 'Verify Email',   showLogo: false },
 }
 
 function getPageMeta(pathname) {
@@ -45,6 +48,15 @@ export default function PWAHeader() {
     ? userName.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
     : null
 
+  function handleBack() {
+    // Set flag so BackPressGuard knows this is a header-initiated back,
+    // not a hardware back button press
+    if (typeof window !== 'undefined') {
+      window.__NV_HEADER_BACK__ = true
+    }
+    router.back()
+  }
+
   return (
     <header className="pwa-header" role="banner">
 
@@ -64,7 +76,7 @@ export default function PWAHeader() {
             </svg>
           </div>
         ) : (
-          <button onClick={() => router.back()} className="pwa-back-btn" aria-label="Go back">
+          <button onClick={handleBack} className="pwa-back-btn" aria-label="Go back">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
               stroke="rgba(255,255,255,0.9)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M19 12H5M12 5l-7 7 7 7"/>
@@ -95,7 +107,6 @@ export default function PWAHeader() {
       {/* Right — user avatar, sign-in, or nothing on auth pages */}
       <div className="pwa-header-right">
         {isAuthPage ? (
-          /* nothing on login/signup — already on auth page */
           null
         ) : session && !isGuest ? (
           <Link href="/dashboard" aria-label="My account" style={{ textDecoration: 'none' }}>

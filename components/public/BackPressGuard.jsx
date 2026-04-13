@@ -1,39 +1,28 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
 
 /**
- * Intercepts the hardware / browser back button.
+ * Intercepts the hardware / browser back button in PWA mode.
  *
- * How it works (reliably, even on Android PWA):
- *   • On mount: push ONE guard entry so the first back press fires popstate
- *     rather than immediately closing the app.
- *   • On every popstate (back press detected):
- *       – Call history.go(1) to CANCEL the back navigation immediately.
- *       – Increment a counter; reset it if 3 s pass between presses.
- *   • After 3 consecutive presses: show "Leave NomadVital?" dialog.
- *   • Physical back while dialog is open = "Continue" (dismiss dialog).
- *   • "Continue" button  → dismiss, stay in app.
- *   • "Leave Site" button → navigate to home page.
+ * - First 2 back presses: silently blocked.
+ * - 3rd consecutive press: shows "Leave NomadVital?" dialog.
+ * - "Continue" → stay in app.
+ * - "Close App" → tries window.close(); falls back to going home.
  *
- * Why history.go(1) instead of pushState?
- *   Chrome (Android) silently deduplicates consecutive pushState entries that
- *   share the same URL, so the guards evaporate and the app exits too early.
- *   history.go(1) never modifies the history stack — it just moves the pointer
- *   forward, which is 100 % reliable.
- *
- * Why intercept history.pushState?
- *   Next.js uses pushState for every client-side page navigation.  Without
- *   resetting the counter on forward navigation, pressing Back through 3
- *   legitimate pages would wrongly trigger the dialog.
+ * Also exposes window.__NV_HEADER_BACK__ flag:
+ * PWAHeader sets this to true before calling router.back(), so the next
+ * popstate event is allowed through (not blocked as a hardware back press).
  */
-
 export default function BackPressGuard() {
   const [show, setShow]   = useState(false)
+  const router            = useRouter()
+  const pathname          = usePathname()
 
   const count      = useRef(0)
-  const isOpen     = useRef(false)   // true while dialog is on screen
-  const skipNext   = useRef(false)   // skip the forward-popstate from our go(1)
+  const isOpen     = useRef(false)
+  const skipNext   = useRef(false)
   const resetTimer = useRef(null)
 
   useEffect(() => {
@@ -43,7 +32,7 @@ export default function BackPressGuard() {
     /* ── 2. Reset counter on forward navigation (Next.js page changes) ── */
     const origPushState = window.history.pushState.bind(window.history)
     window.history.pushState = function (state, title, url) {
-      if (!state?.nvGuard) {           // ignore our own guard pushes
+      if (!state?.nvGuard) {
         count.current = 0
         clearTimeout(resetTimer.current)
       }
@@ -55,6 +44,12 @@ export default function BackPressGuard() {
       /* Skip the popstate that our own history.go(1) fires */
       if (skipNext.current) {
         skipNext.current = false
+        return
+      }
+
+      /* Allow back navigations triggered by the PWA header back button */
+      if (window.__NV_HEADER_BACK__) {
+        window.__NV_HEADER_BACK__ = false
         return
       }
 
@@ -89,7 +84,7 @@ export default function BackPressGuard() {
 
     return () => {
       window.removeEventListener('popstate', onPop)
-      window.history.pushState = origPushState   // restore original
+      window.history.pushState = origPushState
       clearTimeout(resetTimer.current)
     }
   }, [])
@@ -100,10 +95,15 @@ export default function BackPressGuard() {
     count.current = 0
   }
 
-  function handleLeave() {
+  function handleCloseApp() {
     isOpen.current = false
     setShow(false)
-    window.location.href = '/'
+    // Try to close the PWA window
+    try { window.close() } catch {}
+    // If still here (window.close is blocked on most Android), navigate home
+    setTimeout(() => {
+      router.replace('/dashboard')
+    }, 80)
   }
 
   if (!show) return null
@@ -129,7 +129,6 @@ export default function BackPressGuard() {
         textAlign: 'center',
         boxShadow: '0 20px 60px rgba(0,0,0,0.22)',
       }}>
-
         {/* Icon */}
         <div style={{
           width: '56px', height: '56px', borderRadius: '50%',
@@ -157,7 +156,7 @@ export default function BackPressGuard() {
           marginBottom: '24px',
           fontFamily: 'var(--font-inter, Inter, sans-serif)',
         }}>
-          Do you want to leave the site or stay and continue?
+          Do you want to close the app or stay and continue?
         </p>
 
         <div style={{ display: 'flex', gap: '10px' }}>
@@ -174,7 +173,7 @@ export default function BackPressGuard() {
             Continue
           </button>
           <button
-            onClick={handleLeave}
+            onClick={handleCloseApp}
             style={{
               flex: 1, padding: '13px',
               border: 'none', borderRadius: '12px',
@@ -183,7 +182,7 @@ export default function BackPressGuard() {
               fontFamily: 'var(--font-inter, Inter, sans-serif)',
             }}
           >
-            Leave Site
+            Close App
           </button>
         </div>
       </div>

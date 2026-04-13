@@ -1,16 +1,17 @@
 'use client'
 
 import { useState } from 'react'
-import { signIn } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 export default function SignupForm() {
-  const router = useRouter()
   const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '' })
   const [showConfirm, setShowConfirm] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [verificationSent, setVerificationSent] = useState(false)
+  const [submittedEmail, setSubmittedEmail] = useState('')
+  const [resending, setResending] = useState(false)
+  const [resendDone, setResendDone] = useState(false)
 
   function handleChange(e) {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
@@ -34,28 +35,28 @@ export default function SignupForm() {
     })
 
     const data = await res.json()
+    setLoading(false)
 
     if (!res.ok) {
       setError(data.error || 'Something went wrong. Please try again.')
-      setLoading(false)
       return
     }
 
-    // Auto sign-in after successful signup
-    const result = await signIn('credentials', {
-      email: form.email,
-      password: form.password,
-      redirect: false,
-    })
+    // Show "check your email" screen
+    setSubmittedEmail(form.email)
+    setVerificationSent(true)
+  }
 
-    setLoading(false)
-
-    if (result?.error) {
-      // Account created but auto sign-in failed — send to login
-      router.push('/login')
-    } else {
-      router.push('/dashboard')
-    }
+  async function handleResend() {
+    setResending(true)
+    await fetch('/api/auth/resend-verification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: submittedEmail }),
+    }).catch(() => {})
+    setResending(false)
+    setResendDone(true)
+    setTimeout(() => setResendDone(false), 5000)
   }
 
   const inputStyle = {
@@ -69,8 +70,81 @@ export default function SignupForm() {
     background: '#fff',
     outline: 'none',
     boxSizing: 'border-box',
+    WebkitTapHighlightColor: 'transparent',
+    touchAction: 'manipulation',
   }
 
+  /* ── "Check your email" state ── */
+  if (verificationSent) {
+    return (
+      <div className="auth-screen-outer" style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '24px 16px',
+        background: '#F1EFE8',
+      }}>
+        <div className="auth-card" style={{
+          background: '#fff',
+          borderRadius: '16px',
+          border: '1px solid #D3D1C7',
+          boxShadow: '0 4px 24px rgba(0,0,0,0.07)',
+          padding: '36px 32px',
+          width: '100%',
+          maxWidth: '420px',
+          textAlign: 'center',
+        }}>
+          <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#E1F5EE', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+              <polyline points="22,6 12,13 2,6"/>
+            </svg>
+          </div>
+
+          <h1 style={{ fontFamily: 'var(--font-playfair, Georgia, serif)', fontSize: '22px', fontWeight: '700', color: '#085041', marginBottom: '10px' }}>
+            Check your email
+          </h1>
+          <p style={{ fontSize: '14px', color: '#5F5E5A', lineHeight: '1.6', marginBottom: '8px', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
+            We sent a verification link to:
+          </p>
+          <p style={{ fontSize: '14px', fontWeight: '700', color: '#085041', marginBottom: '20px', fontFamily: 'var(--font-inter, Inter, sans-serif)', wordBreak: 'break-all' }}>
+            {submittedEmail}
+          </p>
+          <p style={{ fontSize: '13px', color: '#5F5E5A', lineHeight: '1.6', marginBottom: '24px', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
+            Click the link in the email to activate your account. Check your spam folder if you don&apos;t see it.
+          </p>
+
+          {resendDone ? (
+            <p style={{ fontSize: '13px', color: '#1D9E75', fontWeight: '600', marginBottom: '16px', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
+              ✓ New verification email sent!
+            </p>
+          ) : (
+            <button
+              onClick={handleResend}
+              disabled={resending}
+              style={{
+                background: 'none', border: '1px solid #D3D1C7', borderRadius: '10px',
+                padding: '10px 20px', fontSize: '13px', fontWeight: '600',
+                color: resending ? '#888780' : '#085041', cursor: resending ? 'default' : 'pointer',
+                fontFamily: 'var(--font-inter, Inter, sans-serif)',
+                marginBottom: '16px', width: '100%',
+              }}
+            >
+              {resending ? 'Sending…' : 'Resend verification email'}
+            </button>
+          )}
+
+          <Link href="/login" style={{ fontSize: '13px', color: '#888780', textDecoration: 'none', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
+            Already verified?{' '}
+            <span style={{ color: '#1D9E75', fontWeight: '500' }}>Sign in →</span>
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  /* ── Sign-up form ── */
   return (
     <div className="auth-screen-outer" style={{
       minHeight: '100vh',
@@ -170,7 +244,8 @@ export default function SignupForm() {
             <label style={{ display: 'block', fontSize: '12px', fontWeight: '500', color: '#5F5E5A', marginBottom: '5px', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
               Confirm password
             </label>
-            <div style={{ position: 'relative' }}>
+            {/* Flex row keeps the eye-toggle outside the input — fixes mobile keyboard issues */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <input
                 type={showConfirm ? 'text' : 'password'}
                 name="confirm"
@@ -179,16 +254,19 @@ export default function SignupForm() {
                 placeholder="Repeat password"
                 required
                 autoComplete="new-password"
-                style={{ ...inputStyle, paddingRight: '40px' }}
+                style={{ ...inputStyle, flex: 1 }}
               />
               <button
                 type="button"
                 onClick={() => setShowConfirm(v => !v)}
                 tabIndex={-1}
                 style={{
-                  position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)',
-                  background: 'none', border: 'none', cursor: 'pointer', padding: '4px',
-                  color: '#888780', display: 'flex', alignItems: 'center',
+                  flexShrink: 0,
+                  width: '40px', height: '42px',
+                  background: '#F9F8F5', border: '1px solid #D3D1C7', borderRadius: '10px',
+                  cursor: 'pointer', padding: '0',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: '#888780',
                 }}
                 aria-label={showConfirm ? 'Hide password' : 'Show password'}
               >

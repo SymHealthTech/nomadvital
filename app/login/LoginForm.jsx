@@ -15,10 +15,14 @@ export default function LoginForm() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
+  const [unverifiedEmail, setUnverifiedEmail] = useState(null)
+  const [resending, setResending] = useState(false)
+  const [resendDone, setResendDone] = useState(false)
 
   async function handleSubmit(e) {
     e.preventDefault()
     setError('')
+    setUnverifiedEmail(null)
     setLoading(true)
 
     const result = await signIn('credentials', {
@@ -27,18 +31,41 @@ export default function LoginForm() {
       redirect: false,
     })
 
-    setLoading(false)
-
     if (result?.error) {
-      setError('Invalid email or password. Please try again.')
+      // Check if the failure was due to an unverified email
+      const check = await fetch('/api/auth/email-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      }).then(r => r.json()).catch(() => ({}))
+
+      if (check?.unverified) {
+        setUnverifiedEmail(email)
+      } else {
+        setError('Invalid email or password. Please try again.')
+      }
     } else {
       router.push('/auth/redirect')
     }
+
+    setLoading(false)
   }
 
   async function handleGoogle() {
     setGoogleLoading(true)
     await signIn('google', { callbackUrl: '/auth/redirect' })
+  }
+
+  async function handleResend() {
+    setResending(true)
+    await fetch('/api/auth/resend-verification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: unverifiedEmail }),
+    }).catch(() => {})
+    setResending(false)
+    setResendDone(true)
+    setTimeout(() => setResendDone(false), 5000)
   }
 
   const inputStyle = {
@@ -93,10 +120,37 @@ export default function LoginForm() {
           Sign in to your NomadVital account
         </p>
 
-        {/* Signed out — another device logged in */}
+        {/* Signed out — another device */}
         {otherDevice && (
           <div style={{ background: '#FFF7ED', border: '1px solid #FED7AA', borderRadius: '8px', padding: '10px 14px', marginBottom: '16px', fontSize: '13px', color: '#92400E', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
             You were signed out because your account was accessed on another device.
+          </div>
+        )}
+
+        {/* Unverified email banner */}
+        {unverifiedEmail && (
+          <div style={{ background: '#FFF7ED', border: '1px solid #FCD34D', borderRadius: '8px', padding: '12px 14px', marginBottom: '16px', fontSize: '13px', color: '#92400E', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
+            <p style={{ margin: '0 0 8px', fontWeight: '600' }}>Email not verified</p>
+            <p style={{ margin: '0 0 10px', lineHeight: '1.5' }}>
+              Please verify your email address before signing in. Check your inbox for <strong>{unverifiedEmail}</strong>.
+            </p>
+            {resendDone ? (
+              <p style={{ margin: 0, color: '#1D9E75', fontWeight: '600' }}>✓ Verification email sent!</p>
+            ) : (
+              <button
+                onClick={handleResend}
+                disabled={resending}
+                style={{
+                  background: 'none', border: 'none', padding: 0,
+                  color: '#B45309', fontWeight: '600', fontSize: '13px',
+                  cursor: resending ? 'default' : 'pointer',
+                  fontFamily: 'var(--font-inter, Inter, sans-serif)',
+                  textDecoration: 'underline',
+                }}
+              >
+                {resending ? 'Sending…' : 'Resend verification email →'}
+              </button>
+            )}
           </div>
         )}
 

@@ -231,13 +231,16 @@ export default async function DashboardPage() {
             </span>
           </div>
 
-          <div className="flex justify-between items-center text-sm pt-1">
-            <span className="text-[#888780]" style={{ fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>Support</span>
-            <a href="mailto:contact@nomadvital.com"
-              style={{ color: '#1D9E75', textDecoration: 'none', fontSize: '13px', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
-              contact@nomadvital.com
-            </a>
-          </div>
+          {/* Support email — Pro users only */}
+          {isPro && (
+            <div className="flex justify-between items-center text-sm pt-1">
+              <span className="text-[#888780]" style={{ fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>Support</span>
+              <a href="mailto:contact@nomadvital.com"
+                style={{ color: '#1D9E75', textDecoration: 'none', fontSize: '13px', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
+                contact@nomadvital.com
+              </a>
+            </div>
+          )}
         </div>
 
         <SignOutButton />

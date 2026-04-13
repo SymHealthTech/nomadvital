@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
+import crypto from 'crypto'
 import connectDB from '@/lib/mongodb'
 import User from '@/models/User'
+import { sendEmail, verifyEmailHtml } from '@/lib/email'
 
 export async function POST(request) {
   const { name, email, password } = await request.json()
@@ -28,11 +30,37 @@ export async function POST(request) {
     // Check for existing account
     const existing = await User.findOne({ email: email.toLowerCase() })
     if (existing) {
-      return NextResponse.json({ error: 'An account with this email already exists.' }, { status: 409 })
+      // If unverified, resend the verification email instead of rejecting
+      if (!existing.emailVerified && existing.emailVerificationToken) {
+        const token = crypto.randomBytes(32).toString('hex')
+        const expires = new Date(Date.now() + 24 * 60 * 60 * 1000)
+        await User.findByIdAndUpdate(existing._id, {
+          emailVerificationToken: token,
+          emailVerificationExpires: expires,
+        })
+        const verifyUrl = `${process.env.NEXTAUTH_URL}/verify-email?token=${token}`
+        await sendEmail({
+          to: email.toLowerCase(),
+          subject: 'Verify your NomadVital email',
+          html: verifyEmailHtml({ name: existing.name, verifyUrl }),
+        }).catch(() => {}) // non-fatal
+        return NextResponse.json(
+          { success: true, requiresVerification: true, resent: true },
+          { status: 200 }
+        )
+      }
+      return NextResponse.json(
+        { error: 'An account with this email already exists.' },
+        { status: 409 }
+      )
     }
 
     const hashedPassword = await bcrypt.hash(password, 12)
     const role = email.toLowerCase() === process.env.ADMIN_EMAIL?.toLowerCase() ? 'admin' : 'user'
+
+    // Generate email verification token (expires in 24 h)
+    const verificationToken = crypto.randomBytes(32).toString('hex')
+    const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000)
 
     await User.create({
       name,
@@ -40,10 +68,29 @@ export async function POST(request) {
       password: hashedPassword,
       role,
       plan: 'free',
+      emailVerified: false,
+      emailVerificationToken: verificationToken,
+      emailVerificationExpires: verificationExpires,
     })
 
-    return NextResponse.json({ success: true, message: 'Account created.' }, { status: 201 })
+    // Send verification email (non-fatal — account is created regardless)
+    const verifyUrl = `${process.env.NEXTAUTH_URL}/verify-email?token=${verificationToken}`
+    await sendEmail({
+      to: email.toLowerCase(),
+      subject: 'Verify your NomadVital email',
+      html: verifyEmailHtml({ name, verifyUrl }),
+    }).catch(err => {
+      console.error('[Signup] Failed to send verification email:', err.message)
+    })
+
+    return NextResponse.json(
+      { success: true, requiresVerification: true },
+      { status: 201 }
+    )
   } catch {
-    return NextResponse.json({ error: 'Service temporarily unavailable. Please try again.' }, { status: 503 })
+    return NextResponse.json(
+      { error: 'Service temporarily unavailable. Please try again.' },
+      { status: 503 }
+    )
   }
 }
