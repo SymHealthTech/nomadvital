@@ -23,6 +23,14 @@ export default function BackPressGuard() {
   const resetTimer = useRef(null)
 
   useEffect(() => {
+    // Only intercept back navigation when running as an installed PWA.
+    // In the browser, let the native back button work normally.
+    const isPWA =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      !!window.navigator.standalone ||
+      document.referrer.includes('android-app://')
+    if (!isPWA) return
+
     /* ── 1. Push the initial guard ── */
     window.history.pushState({ nvGuard: true }, '', window.location.href)
 
@@ -95,11 +103,19 @@ export default function BackPressGuard() {
   function handleCloseApp() {
     isOpen.current = false
     setShow(false)
-    // window.close() is blocked in standalone PWAs on Android.
-    // A full-page navigation to /dashboard is the closest we can get —
-    // it keeps the user inside the PWA and resets their in-app navigation.
-    // Pressing the hardware Back button once from there exits the app.
-    window.location.href = '/dashboard'
+
+    // Try to close the window/tab first.
+    // Works in: browser tabs opened by script, some desktop environments.
+    window.close()
+
+    // Fallback for cases where window.close() is blocked (browser tabs opened
+    // by the user, Android PWA standalone mode, etc.).
+    // Navigate to the root with replace() so there is no back entry — the user
+    // can then press the hardware Back button once to exit the PWA entirely,
+    // or simply be at the home page in the browser.
+    setTimeout(() => {
+      window.location.replace('/')
+    }, 300)
   }
 
   if (!show) return null

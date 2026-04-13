@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 
 const TABS = [
   {
@@ -75,6 +76,23 @@ const TABS = [
 
 export default function BottomTabBar() {
   const pathname = usePathname()
+  const router   = useRouter()
+  const { status } = useSession()
+
+  // In PWA mode, all tabs require authentication.
+  // Block navigation and redirect to login instead of letting
+  // the page render even briefly (prevents the blink).
+  function handleTabClick(e, href) {
+    const isPWA = typeof window !== 'undefined' && !!window.__NV_PWA__
+    if (!isPWA) return // browser — allow normal navigation
+
+    if (status !== 'authenticated') {
+      e.preventDefault()
+      // Ensure protected content is hidden before navigating
+      document.body.classList.remove('pwa-ready')
+      router.push('/login')
+    }
+  }
 
   return (
     <nav className="pwa-bottom-bar" aria-label="Main navigation">
@@ -84,7 +102,8 @@ export default function BottomTabBar() {
         if (tab.center) {
           return (
             <Link key={tab.label} href={tab.href} className="pwa-tab-center"
-              aria-label={tab.label} aria-current={active ? 'page' : undefined}>
+              aria-label={tab.label} aria-current={active ? 'page' : undefined}
+              onClick={e => handleTabClick(e, tab.href)}>
               <div className={`pwa-tab-fab${active ? ' pwa-tab-fab-active' : ''}`}>
                 {tab.icon(active)}
               </div>
@@ -95,7 +114,8 @@ export default function BottomTabBar() {
 
         return (
           <Link key={tab.label} href={tab.href} className="pwa-tab"
-            aria-current={active ? 'page' : undefined}>
+            aria-current={active ? 'page' : undefined}
+            onClick={e => handleTabClick(e, tab.href)}>
             <div className={`pwa-tab-icon${active ? ' pwa-tab-icon-active' : ''}`}>
               {tab.icon(active)}
             </div>

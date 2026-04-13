@@ -48,23 +48,24 @@ export default function ConditionalLayout({ children }) {
     // 2. Guard: hide protected content until auth confirmed
     //    Controlled via pwa-ready class (see globals.css .pwa-guard rule)
     if (isPWA) {
-      const isAuthPage = AUTH_PAGES.has(pathname)
-
-      if (isAuthPage || status === 'authenticated') {
-        // Safe to show content
+      if (status === 'authenticated') {
+        // Only reveal protected content when we have a confirmed session.
+        // Auth pages use .pwa-guard-auth class and are always visible regardless.
         document.body.classList.add('pwa-ready')
-      } else if (status === 'unauthenticated') {
-        // Not signed in on a protected page — redirect, keep content hidden
-        document.body.classList.remove('pwa-ready')
-        router.replace('/login')
-      } else {
-        // status === 'loading' — content stays hidden via CSS; wait for next run
-        document.body.classList.remove('pwa-ready')
-      }
 
-      // Kick out sessions invalidated by a newer login on another device
-      if (status === 'authenticated' && session?.user?.invalidated) {
-        signOut({ callbackUrl: '/login?reason=other_device' })
+        // Kick out sessions invalidated by a login on another device
+        if (session?.user?.invalidated) {
+          document.body.classList.remove('pwa-ready')
+          signOut({ callbackUrl: '/login?reason=other_device' })
+        }
+      } else {
+        // 'loading' or 'unauthenticated' — keep protected content hidden.
+        // Auth pages (.pwa-guard-auth) remain visible without pwa-ready.
+        document.body.classList.remove('pwa-ready')
+
+        if (status === 'unauthenticated' && !AUTH_PAGES.has(pathname)) {
+          router.replace('/login')
+        }
       }
     } else {
       // Not PWA — always show content
