@@ -1,7 +1,8 @@
 {
   "name": "NomadVital",
   "short_name": "NomadVital",
-  "start_url": "/auth/redirect",
+  "start_url": "/pwa-launch",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#085041",
   "theme_color": "#085041",

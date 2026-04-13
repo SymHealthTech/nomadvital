@@ -1,6 +1,7 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
+import { useEffect } from 'react'
 import Navbar from './Navbar'
 import Footer from './Footer'
 import MobileStickyBar from './MobileStickyBar'
@@ -14,32 +15,63 @@ export default function ConditionalLayout({ children }) {
   const isAdmin = pathname.startsWith('/admin')
   const isAsk = pathname === '/ask'
 
+  /* Sync PWA detection after hydration (inline script handles the first paint) */
+  useEffect(() => {
+    function detect() {
+      const standalone =
+        localStorage.getItem('nvPWA') === '1' ||
+        window.matchMedia('(display-mode: standalone)').matches ||
+        !!window.navigator.standalone ||
+        document.referrer.includes('android-app://')
+      if (standalone) {
+        document.body.classList.add('pwa-mode')
+      } else {
+        document.body.classList.remove('pwa-mode')
+      }
+    }
+    detect()
+    const mq = window.matchMedia('(display-mode: standalone)')
+    mq.addEventListener('change', detect)
+    return () => mq.removeEventListener('change', detect)
+  }, [])
+
+  if (isAdmin) {
+    return <main className="flex-1">{children}</main>
+  }
+
   return (
     <>
-      {/* Regular navbar — hidden automatically in PWA mode via .regular-navbar CSS class */}
-      {!isAdmin && (
-        <div className="regular-navbar">
-          <Navbar />
-        </div>
-      )}
+      {/* Regular web navbar — hidden by CSS when body.pwa-mode */}
+      <div className="pwa-hide regular-navbar">
+        <Navbar />
+      </div>
 
-      {/* PWA native top header — only visible in standalone mode (CSS controlled) */}
-      {!isAdmin && <PWAHeader />}
+      {/* PWA native top header — shown by CSS when body.pwa-mode */}
+      <div className="pwa-show">
+        <PWAHeader />
+      </div>
 
-      {!isAdmin && (
-        <div className="install-banner">
-          <InstallBanner />
-        </div>
-      )}
+      {/* Install banner — hidden by CSS when body.pwa-mode */}
+      <div className="pwa-hide install-banner">
+        <InstallBanner />
+      </div>
 
       <main className="flex-1">{children}</main>
 
-      {!isAdmin && <Footer mobileHidden={isAsk} />}
-      {!isAdmin && <MobileStickyBar />}
-      {!isAdmin && <BackPressGuard />}
+      {/* Footer + mobile sticky — hidden by CSS when body.pwa-mode */}
+      <div className="pwa-hide">
+        <Footer mobileHidden={isAsk} />
+      </div>
+      <div className="pwa-hide">
+        <MobileStickyBar />
+      </div>
 
-      {/* PWA native bottom tab bar — only visible in standalone mode (CSS controlled) */}
-      {!isAdmin && <BottomTabBar />}
+      <BackPressGuard />
+
+      {/* PWA native bottom tab bar — shown by CSS when body.pwa-mode */}
+      <div className="pwa-show">
+        <BottomTabBar />
+      </div>
     </>
   )
 }
