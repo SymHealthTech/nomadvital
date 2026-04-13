@@ -7,7 +7,8 @@ import connectDB from '@/lib/mongodb'
 import User from '@/models/User'
 import GuestUsage from '@/models/GuestUsage'
 
-const FREE_LIMIT = 3
+const FREE_LIMIT         = 3   // AI Advisor questions / day
+const FREE_PLANNER_LIMIT = 1   // Planner generations / day
 
 export async function POST(request) {
   const session = await auth()
@@ -16,7 +17,8 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { message, personaId, history, deviceId } = await request.json()
+  const { message, personaId, history, deviceId, source } = await request.json()
+  const isPlanner = source === 'planner'
 
   if (!message || typeof message !== 'string' || message.trim().length === 0) {
     return NextResponse.json({ error: 'Message is required.' }, { status: 400 })
@@ -87,26 +89,46 @@ export async function POST(request) {
   // Rate limiting for free users
   if (user.plan === 'free') {
     const today = new Date().toDateString()
-    const lastDate = user.lastQuestionDate
-      ? new Date(user.lastQuestionDate).toDateString()
-      : null
 
-    // Reset counter on a new day
-    if (lastDate !== today) {
-      user.dailyQuestionCount = 0
-      user.lastQuestionDate = new Date()
-    }
-
-    if (user.dailyQuestionCount >= FREE_LIMIT) {
-      return NextResponse.json(
-        {
-          error: 'daily_limit_reached',
-          message: `You've used your ${FREE_LIMIT} free questions today. Upgrade to Pro for unlimited questions.`,
-          questionsUsed: user.dailyQuestionCount,
-          limit: FREE_LIMIT,
-        },
-        { status: 429 }
-      )
+    if (isPlanner) {
+      // Planner has its own separate daily limit
+      const lastPlannerDate = user.lastPlannerDate
+        ? new Date(user.lastPlannerDate).toDateString()
+        : null
+      if (lastPlannerDate !== today) {
+        user.dailyPlannerCount = 0
+      }
+      if (user.dailyPlannerCount >= FREE_PLANNER_LIMIT) {
+        return NextResponse.json(
+          {
+            error: 'planner_limit_reached',
+            message: `You've used your ${FREE_PLANNER_LIMIT} free planner generation today. Upgrade to Pro for unlimited plans.`,
+            plannersUsed: user.dailyPlannerCount,
+            limit: FREE_PLANNER_LIMIT,
+          },
+          { status: 429 }
+        )
+      }
+    } else {
+      // AI Advisor question limit
+      const lastDate = user.lastQuestionDate
+        ? new Date(user.lastQuestionDate).toDateString()
+        : null
+      if (lastDate !== today) {
+        user.dailyQuestionCount = 0
+        user.lastQuestionDate = new Date()
+      }
+      if (user.dailyQuestionCount >= FREE_LIMIT) {
+        return NextResponse.json(
+          {
+            error: 'daily_limit_reached',
+            message: `You've used your ${FREE_LIMIT} free questions today. Upgrade to Pro for unlimited questions.`,
+            questionsUsed: user.dailyQuestionCount,
+            limit: FREE_LIMIT,
+          },
+          { status: 429 }
+        )
+      }
     }
   }
 
@@ -123,8 +145,13 @@ export async function POST(request) {
 
   // Increment usage count after a successful response
   if (user.plan === 'free') {
-    user.dailyQuestionCount += 1
-    user.lastQuestionDate = new Date()
+    if (isPlanner) {
+      user.dailyPlannerCount += 1
+      user.lastPlannerDate = new Date()
+    } else {
+      user.dailyQuestionCount += 1
+      user.lastQuestionDate = new Date()
+    }
     await user.save()
   }
 

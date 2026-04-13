@@ -46,6 +46,15 @@ const UserSchema = new mongoose.Schema({
     type: Date,
   },
 
+  // Planner usage tracking (separate from AI advisor)
+  dailyPlannerCount: {
+    type: Number,
+    default: 0,
+  },
+  lastPlannerDate: {
+    type: Date,
+  },
+
   // Selected traveler persona
   travelerType: {
     type: String,

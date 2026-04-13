@@ -241,11 +241,15 @@ Keep each meal description to 1-2 sentences. Be specific about local dishes avai
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: prompt, personaId: 'general' }),
+        body: JSON.stringify({ message: prompt, personaId: 'general', source: 'planner' }),
       })
       const data = await res.json()
       if (res.status === 429) {
-        setError('Daily question limit reached. Upgrade to Pro for unlimited access.')
+        if (data.error === 'planner_limit_reached') {
+          setError('You have used your 1 free planner generation for today. Upgrade to Pro for unlimited plans.')
+        } else {
+          setError('Daily limit reached. Upgrade to Pro for unlimited access.')
+        }
       } else if (!res.ok) {
         setError(data.message || 'Failed to generate plan. Please try again.')
       } else {
@@ -294,7 +298,7 @@ Keep each meal description to 1-2 sentences. Be specific about local dishes avai
             <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
           <p style={{ fontSize: '13px', color: '#92400E', margin: 0, lineHeight: '1.5', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
-            Free plan: uses 1 of your 3 daily AI questions per plan.{' '}
+            Free plan: 1 planner generation per day (separate from AI questions).{' '}
             <Link href="/pricing" style={{ color: '#B45309', fontWeight: '600', textDecoration: 'underline' }}>Upgrade to Pro</Link>
             {' '}for unlimited plans.
           </p>

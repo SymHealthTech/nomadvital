@@ -47,8 +47,52 @@ export default function HeroInstallBadge() {
     setPrompt(null)
   }
 
-  // Hide when installed, not detected, done, or on desktop
-  if (!platform || platform === 'installed' || platform === 'desktop' || done) return null
+  // Hide when not yet detected or on desktop
+  if (!platform || platform === 'desktop') return null
+
+  // Show "installed" confirmation badge
+  if (platform === 'installed' || done) {
+    return (
+      <div style={{ marginTop: '18px', display: 'flex', justifyContent: 'center' }}>
+        <div style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '8px',
+          background: 'rgba(255,255,255,0.10)',
+          border: '1px solid rgba(93,202,165,0.45)',
+          borderRadius: '40px',
+          padding: '8px 18px 8px 10px',
+        }}>
+          <div style={{
+            width: '28px', height: '28px', borderRadius: '8px',
+            background: '#1D9E75',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0,
+          }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E1F5EE" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+          <div style={{ textAlign: 'left' }}>
+            <div style={{
+              fontSize: '12px', fontWeight: '700', color: '#E1F5EE',
+              fontFamily: 'var(--font-inter, Inter, sans-serif)',
+              lineHeight: '1.2',
+            }}>
+              App installed
+            </div>
+            <div style={{
+              fontSize: '10px', color: '#9FE1CB',
+              fontFamily: 'var(--font-inter, Inter, sans-serif)',
+              lineHeight: '1.2',
+            }}>
+              You&apos;re using the NomadVital app
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   const isIOS = platform === 'ios'
 

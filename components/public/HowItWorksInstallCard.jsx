@@ -45,11 +45,55 @@ export default function HowItWorksInstallCard() {
     setPrompt(null)
   }
 
-  // Hide when installed, not detected, done, or on desktop
-  if (!platform || platform === 'installed' || platform === 'desktop' || done) return null
+  // Hide when not yet detected or on desktop
+  if (!platform || platform === 'desktop') return null
 
   const isIOS     = platform === 'ios'
   const isAndroid = platform === 'android'
+
+  // Show "installed" confirmation card
+  if (platform === 'installed' || done) {
+    return (
+      <div style={{ marginTop: '40px' }}>
+        <div style={{
+          background: 'linear-gradient(135deg, #085041 0%, #0F6E56 100%)',
+          borderRadius: '20px',
+          padding: '28px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '20px',
+          boxShadow: '0 8px 32px rgba(8,80,65,0.15)',
+        }}>
+          <div style={{
+            width: '52px', height: '52px', borderRadius: '14px',
+            background: '#1D9E75',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0,
+            boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+          }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#E1F5EE" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+          <div>
+            <div style={{
+              fontSize: '16px', fontWeight: '700', color: '#E1F5EE',
+              fontFamily: 'var(--font-inter, Inter, sans-serif)',
+              marginBottom: '3px',
+            }}>
+              App already installed
+            </div>
+            <div style={{
+              fontSize: '12px', color: '#9FE1CB', lineHeight: '1.5',
+              fontFamily: 'var(--font-inter, Inter, sans-serif)',
+            }}>
+              You&apos;re using NomadVital as a native app · Always up-to-date
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div style={{ marginTop: '40px' }}>
