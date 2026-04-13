@@ -1,40 +1,56 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
 
-/**
- * Intercepts the hardware / browser back button in PWA mode.
- *
- * - First 2 back presses: silently blocked.
- * - 3rd consecutive press: shows "Leave NomadVital?" dialog.
- * - "Continue" → stay in app.
- * - "Close App" → tries window.close(); falls back to going home.
- *
- * Also exposes window.__NV_HEADER_BACK__ flag:
- * PWAHeader sets this to true before calling router.back(), so the next
- * popstate event is allowed through (not blocked as a hardware back press).
- */
+// Root tabs — hardware back on these triggers the exit-confirmation flow.
+// Any other pathname is a sub-page and hardware back navigates to its parent.
+const ROOT_PAGES = new Set(['/', '/ask', '/destinations', '/blog', '/dashboard', '/planner'])
+
+// Returns the logical parent path for known sub-pages, or null for unknown ones.
+function getParentPath(pathname) {
+  if (pathname.startsWith('/blog/'))         return '/blog'
+  if (pathname.startsWith('/destinations/')) return '/destinations'
+  if (pathname === '/pricing')               return '/dashboard'
+  if (pathname === '/privacy' ||
+      pathname === '/disclaimer' ||
+      pathname === '/contact')               return '/'
+  if (pathname === '/forgot-password' ||
+      pathname === '/verify-email')          return '/login'
+  return null
+}
+
 export default function BackPressGuard() {
   const [show, setShow] = useState(false)
+  const pathname = usePathname()
+  const router   = useRouter()
 
-  const count      = useRef(0)
-  const isOpen     = useRef(false)
-  const skipNext   = useRef(false)
-  const resetTimer = useRef(null)
+  const count        = useRef(0)
+  const isOpen       = useRef(false)
+  const skipNext     = useRef(false)
+  const resetTimer   = useRef(null)
+  const allowExit    = useRef(false)  // set after "Close App" so back presses go through
+  // Refs that stay current inside the stable effect closure
+  const pathnameRef  = useRef(pathname)
+  const routerRef    = useRef(router)
+
+  // Update every render — no stale closure in the effect
+  pathnameRef.current = pathname
+  routerRef.current   = router
 
   useEffect(() => {
     // Only intercept back navigation when running as an installed PWA.
-    // In the browser, let the native back button work normally.
+    // In the browser the native back button works normally.
     const isPWA =
       window.matchMedia('(display-mode: standalone)').matches ||
       !!window.navigator.standalone ||
       document.referrer.includes('android-app://')
     if (!isPWA) return
 
-    /* ── 1. Push the initial guard ── */
+    // Push a sentinel entry so popstate fires on every hardware back press
     window.history.pushState({ nvGuard: true }, '', window.location.href)
 
-    /* ── 2. Reset counter on forward navigation (Next.js page changes) ── */
+    // Reset the counter whenever the user navigates forward (new page loaded)
     const origPushState = window.history.pushState.bind(window.history)
     window.history.pushState = function (state, title, url) {
       if (!state?.nvGuard) {
@@ -44,25 +60,40 @@ export default function BackPressGuard() {
       return origPushState(state, title, url)
     }
 
-    /* ── 3. popstate handler ── */
     function onPop() {
-      /* Skip the popstate that our own history.go(1) fires */
+      // Skip the popstate that our own history.go(1) fires
       if (skipNext.current) {
         skipNext.current = false
         return
       }
 
-      /* Allow back navigations triggered by the PWA header back button */
+      // After "Close App" — let all back presses through so the user can exit
+      if (allowExit.current) return
+
+      // Allow navigations triggered by the PWAHeader back button
       if (window.__NV_HEADER_BACK__) {
         window.__NV_HEADER_BACK__ = false
         return
       }
 
-      /* ALWAYS cancel the back navigation first */
+      const currentPath = pathnameRef.current
+      const isRoot = ROOT_PAGES.has(currentPath)
+
+      if (!isRoot) {
+        // Sub-page: cancel the hardware back, then navigate to the logical parent.
+        // This mirrors what the PWAHeader back button does.
+        skipNext.current = true
+        window.history.go(1)
+        const parent = getParentPath(currentPath) || '/'
+        routerRef.current.push(parent)
+        return
+      }
+
+      // Root page: cancel back and count consecutive presses for the exit dialog
       skipNext.current = true
       window.history.go(1)
 
-      /* Physical back while dialog is showing = "Continue" */
+      // Hardware back while dialog is open = dismiss it (stay in app)
       if (isOpen.current) {
         isOpen.current = false
         setShow(false)
@@ -71,12 +102,10 @@ export default function BackPressGuard() {
         return
       }
 
-      /* Increment counter, auto-reset after 3 s of inactivity */
       count.current += 1
       clearTimeout(resetTimer.current)
       resetTimer.current = setTimeout(() => { count.current = 0 }, 3000)
 
-      /* Third consecutive press → show dialog */
       if (count.current >= 3) {
         count.current = 0
         clearTimeout(resetTimer.current)
@@ -104,17 +133,20 @@ export default function BackPressGuard() {
     isOpen.current = false
     setShow(false)
 
-    // Try to close the window/tab first.
-    // Works in: browser tabs opened by script, some desktop environments.
+    // Allow all subsequent back presses to pass through the guard
+    // so the user can actually navigate back and exit the PWA.
+    allowExit.current = true
+
+    // Try to close programmatically (works in some environments)
     window.close()
 
-    // Fallback for cases where window.close() is blocked (browser tabs opened
-    // by the user, Android PWA standalone mode, etc.).
-    // Navigate to the root with replace() so there is no back entry — the user
-    // can then press the hardware Back button once to exit the PWA entirely,
-    // or simply be at the home page in the browser.
+    // Fallback: jump to the very beginning of history so that the
+    // very next hardware back press exits the PWA on Android.
     setTimeout(() => {
-      window.location.replace('/')
+      const stepsBack = window.history.length - 1
+      if (stepsBack > 0) {
+        window.history.go(-stepsBack)
+      }
     }, 300)
   }
 

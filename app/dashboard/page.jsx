@@ -149,7 +149,7 @@ export default async function DashboardPage() {
                   </p>
                 ) : (
                   <p style={{ fontSize: '11px', color: '#888780', marginTop: '4px', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
-                    Shared across AI Advisor &amp; Planner. Resets daily.
+                    AI Advisor: 3/day · Planner: 1/day (separate limits)
                   </p>
                 )}
               </div>
