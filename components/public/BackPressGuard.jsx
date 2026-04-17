@@ -1,21 +1,25 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useLayoutEffect, useState, useRef } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 
-// Root tabs — hardware back on these triggers the exit-confirmation flow.
-// Any other pathname is a sub-page and hardware back navigates to its parent.
-const ROOT_PAGES = new Set(['/', '/ask', '/destinations', '/blog', '/dashboard', '/planner'])
+// Root tabs — hardware back on these triggers the exit-confirmation dialog.
+// Any other pathname is a sub-page and hardware back navigates to its logical parent.
+const ROOT_PAGES = new Set([
+  '/', '/ask', '/destinations', '/blog', '/dashboard', '/planner', '/guest',
+])
 
 // Returns the logical parent path for known sub-pages, or null for unknown ones.
 function getParentPath(pathname) {
   if (pathname.startsWith('/blog/'))         return '/blog'
   if (pathname.startsWith('/destinations/')) return '/destinations'
+  if (pathname.startsWith('/for/'))          return '/'
   if (pathname === '/pricing')               return '/dashboard'
   if (pathname === '/privacy' ||
       pathname === '/disclaimer' ||
       pathname === '/contact')               return '/'
   if (pathname === '/forgot-password' ||
+      pathname === '/reset-password' ||
       pathname === '/verify-email')          return '/login'
   return null
 }
@@ -28,49 +32,57 @@ function isPWAMode() {
   )
 }
 
+// useLayoutEffect runs synchronously before paint on the client, cutting the
+// race window where a fast back press could fire before the sentinel is pushed.
+// On the server (SSR) useLayoutEffect is not available, so fall back to useEffect
+// to avoid the React warning — the effect never actually runs on the server anyway.
+const useClientLayoutEffect =
+  typeof window !== 'undefined' ? useLayoutEffect : useEffect
+
 export default function BackPressGuard() {
   const [show, setShow] = useState(false)
   const pathname = usePathname()
   const router   = useRouter()
 
-  const count      = useRef(0)
   const isOpen     = useRef(false)
-  const resetTimer = useRef(null)
   const allowExit  = useRef(false)
-  // Refs that stay current inside the stable effect closure
+
+  // Keep current values accessible inside the stable popstate closure
   const pathnameRef = useRef(pathname)
   const routerRef   = useRef(router)
-
-  // Update every render — no stale closure in the event handler
   pathnameRef.current = pathname
   routerRef.current   = router
 
   // ── Sentinel management ──────────────────────────────────────────────────
-  // Push a sentinel entry above every real page so that popstate fires
-  // reliably on hardware back regardless of how we got here.
-  // Runs on mount AND after every pathname change (navigation).
-  useEffect(() => {
+  // Push one sentinel entry above every real page so that popstate fires
+  // reliably on every hardware back press regardless of how we arrived here.
+  //
+  // Using useClientLayoutEffect (synchronous before paint) minimises the race
+  // window between page load and the first back press.  If the user somehow
+  // presses back before this fires, the browser's own entry for the page
+  // still acts as a partial guard on most Android Chrome builds.
+  //
+  // Runs on mount AND after every pathname change (SPA navigation).
+  // Suppressed while the close-app drain sequence is in progress so the
+  // history stack isn't refilled while we're trying to empty it.
+  useClientLayoutEffect(() => {
+    if (typeof window === 'undefined') return
     if (!isPWAMode()) return
-    // Don't push new sentinels while the close-app sequence is running —
-    // that would prevent history from draining to position 0.
     if (allowExit.current) return
     window.history.pushState({ nvGuard: true }, '', window.location.href)
-
-    // Reset the consecutive-back counter whenever the user navigates to
-    // a new page (replaces the old patched-pushState approach).
-    count.current = 0
-    clearTimeout(resetTimer.current)
   }, [pathname])
 
   // ── popstate listener ────────────────────────────────────────────────────
   useEffect(() => {
+    if (typeof window === 'undefined') return
     if (!isPWAMode()) return
 
     function onPop() {
-      // After "Close App" — let all back presses reach the OS so the PWA closes.
+      // Close-app drain in progress — let all events pass through to the OS.
       if (allowExit.current) return
 
-      // Allow navigations triggered by the PWAHeader back button.
+      // Navigation triggered by the PWAHeader back button — already handled
+      // by the header component, so BackPressGuard should stay silent.
       if (window.__NV_HEADER_BACK__) {
         window.__NV_HEADER_BACK__ = false
         return
@@ -79,68 +91,60 @@ export default function BackPressGuard() {
       const currentPath = pathnameRef.current
       const isRoot = ROOT_PAGES.has(currentPath)
 
-      // Re-arm: push a fresh sentinel so the NEXT hardware back is also caught.
-      // This replaces the old history.go(1) + skipNext approach which had
-      // async-timing races when router.push() completed before go(1) fired.
+      // Re-arm: push a fresh sentinel immediately so the NEXT hardware back
+      // press is also intercepted.  This replaces the old history.go(1) +
+      // "skip next event" approach, which had async-timing races.
       window.history.pushState({ nvGuard: true }, '', window.location.href)
 
+      // ── Sub-page: navigate to logical parent ─────────────────────────────
       if (!isRoot) {
-        // Sub-page: navigate to its logical parent.
-        const parent = getParentPath(currentPath) || '/'
+        const parent = getParentPath(currentPath) ?? '/'
         routerRef.current.push(parent)
         return
       }
 
-      // Root page: dismiss dialog on back press if it's open.
+      // ── Root page: dismiss dialog if it is currently open ────────────────
       if (isOpen.current) {
         isOpen.current = false
         setShow(false)
-        count.current = 0
-        clearTimeout(resetTimer.current)
         return
       }
 
-      // Root page: count consecutive back presses for the exit dialog.
-      count.current += 1
-      clearTimeout(resetTimer.current)
-      resetTimer.current = setTimeout(() => { count.current = 0 }, 3000)
-
-      if (count.current >= 3) {
-        count.current = 0
-        clearTimeout(resetTimer.current)
-        isOpen.current = true
-        setShow(true)
-      }
+      // ── Root page: show exit confirmation on the very first back press ────
+      isOpen.current = true
+      setShow(true)
     }
 
     window.addEventListener('popstate', onPop)
-    return () => {
-      window.removeEventListener('popstate', onPop)
-      clearTimeout(resetTimer.current)
-    }
+    return () => window.removeEventListener('popstate', onPop)
   }, [])
 
+  // ── Dialog handlers ──────────────────────────────────────────────────────
+
   function handleContinue() {
-    isOpen.current = false
+    isOpen.current  = false
+    allowExit.current = false // re-enable guard in case it was partially armed
     setShow(false)
-    count.current = 0
   }
 
   function handleCloseApp() {
     isOpen.current = false
     setShow(false)
 
-    // Allow all subsequent back presses to pass through the guard
-    // so the OS can close the PWA window.
+    // Allow all subsequent popstate events to pass through so the OS can
+    // close the PWA window after the history stack is empty.
     allowExit.current = true
 
-    // Try to close programmatically (works in some environments).
+    // Attempt programmatic close (only works in windows opened by JS;
+    // will silently no-op in a home-screen PWA — that's expected).
     window.close()
 
-    // Fallback: drain history back to position 0 so the very next
-    // hardware back press exits the PWA on Android Chrome.
-    // The sentinel effect is suppressed (allowExit = true) so no new
-    // entries are pushed while we drain.
+    // Primary exit path for Android Chrome PWA: drain the entire history
+    // stack back to position 0.  Once at position 0, the next hardware back
+    // press is handled by the OS and closes the PWA activity.
+    //
+    // The sentinel useClientLayoutEffect is suppressed (allowExit = true)
+    // during the drain so no new entries are pushed while we go back.
     setTimeout(() => {
       const stepsBack = window.history.length - 1
       if (stepsBack > 0) {
@@ -155,6 +159,7 @@ export default function BackPressGuard() {
     <div
       role="dialog"
       aria-modal="true"
+      aria-labelledby="exit-dialog-title"
       style={{
         position: 'fixed', inset: 0,
         background: 'rgba(0,0,0,0.52)',
@@ -186,11 +191,14 @@ export default function BackPressGuard() {
           </svg>
         </div>
 
-        <h3 style={{
-          fontFamily: 'var(--font-playfair, Georgia, serif)',
-          fontSize: '19px', fontWeight: '700', color: '#085041',
-          marginBottom: '8px',
-        }}>
+        <h3
+          id="exit-dialog-title"
+          style={{
+            fontFamily: 'var(--font-playfair, Georgia, serif)',
+            fontSize: '19px', fontWeight: '700', color: '#085041',
+            marginBottom: '8px',
+          }}
+        >
           Leave NomadVital?
         </h3>
 

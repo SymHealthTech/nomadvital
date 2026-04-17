@@ -9,7 +9,7 @@ export default function PlannerPage() {
   return (
     <div>
       {/* Header */}
-      <div style={{ background: '#085041', color: '#fff', padding: '48px 24px 44px', textAlign: 'center' }}>
+      <div style={{ background: '#085041', color: '#fff', padding: '28px 20px 24px', textAlign: 'center' }}>
         <div style={{
           display: 'inline-block',
           background: 'rgba(255,255,255,0.12)', color: '#5DCAA5',
@@ -31,32 +31,9 @@ export default function PlannerPage() {
         </p>
       </div>
 
-      {/* How it works strip */}
-      <div style={{ background: '#F1EFE8', borderBottom: '1px solid #D3D1C7', padding: '14px 24px' }}>
-        <div style={{ maxWidth: '680px', margin: '0 auto', display: 'flex', justifyContent: 'center', gap: '28px', flexWrap: 'wrap' }}>
-          {[
-            { step: '1', text: 'Pick destination + condition' },
-            { step: '2', text: 'AI builds your meal plan' },
-            { step: '3', text: 'Safe local foods, day by day' },
-          ].map(item => (
-            <div key={item.step} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{
-                width: '22px', height: '22px', borderRadius: '50%',
-                background: '#1D9E75', color: '#fff',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '11px', fontWeight: '700', flexShrink: 0,
-                fontFamily: 'var(--font-inter, Inter, sans-serif)',
-              }}>{item.step}</div>
-              <span style={{ fontSize: '12px', color: '#5F5E5A', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
-                {item.text}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
 
       {/* Main content */}
-      <div style={{ padding: '36px 24px 64px' }}>
+      <div style={{ padding: '20px 16px 48px' }}>
         <PlannerClient />
       </div>
     </div>

@@ -65,7 +65,7 @@ export default async function BlogPage() {
   return (
     <div>
       {/* Header */}
-      <div style={{ background: '#085041', color: '#fff', padding: '56px 24px', textAlign: 'center' }}>
+      <div style={{ background: '#085041', color: '#fff', padding: '28px 20px', textAlign: 'center' }}>
         <h1
           style={{
             fontFamily: 'var(--font-playfair, Georgia, serif)',
@@ -82,7 +82,7 @@ export default async function BlogPage() {
         </p>
       </div>
 
-      <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '48px 24px' }}>
+      <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '24px 16px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' }}>
             {displayPosts.map((post) => {
               return (
