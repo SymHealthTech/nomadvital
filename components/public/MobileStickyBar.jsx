@@ -43,8 +43,9 @@ export default function MobileStickyBar() {
     setMobileDismissed(true)
   }
 
-  const mobileVisible = scrolled && !mobileDismissed && !hiddenByPricing && !isPro
-  const desktopVisible = !hiddenByPricing && !isPro
+  const isSignedIn = !!session
+  const mobileVisible = scrolled && !mobileDismissed && !hiddenByPricing && !isSignedIn
+  const desktopVisible = !hiddenByPricing && !isSignedIn
 
   return (
     <>

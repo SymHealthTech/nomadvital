@@ -60,13 +60,10 @@ export default function InstallBanner() {
   if (!show || installed) return null
 
   return (
-    <div className="md:hidden" style={{
+    <div className="md:hidden flex items-center justify-center" style={{
       background: '#0F6E56',
       borderBottom: '1px solid #085041',
       padding: '7px 16px',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
       gap: '10px',
       zIndex: 49,
     }}>
