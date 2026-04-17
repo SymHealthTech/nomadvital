@@ -113,7 +113,7 @@ export default async function ChatDemo() {
           </p>
         ) : (
           <p className="text-center text-[#E1F5EE] text-sm mt-4">
-            Try free — no account needed. <Link href="/guest" style={{ color: '#fff', fontWeight: '600', textDecoration: 'underline' }}>Start asking →</Link>
+            Get started free. <Link href="/signup" style={{ color: '#fff', fontWeight: '600', textDecoration: 'underline' }}>Create account →</Link>
           </p>
         )}
       </div>

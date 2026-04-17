@@ -18,7 +18,7 @@ const freePlan = {
   badge: null,
   highlighted: false,
   cta: 'Start for free',
-  href: '/guest',
+  href: '/signup',
   microCopy: 'No card required · Free forever',
   features: [
     '3 AI health questions per day',

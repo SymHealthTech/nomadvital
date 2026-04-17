@@ -23,13 +23,13 @@ export const metadata = {
 
 // Static metadata per destination (flags, placeholder colors, descriptions)
 const DEST_META = {
-  japan:    { code: 'jp', placeholder: '#E1F5EE', description: 'Navigate soy sauce, gluten, and allergens in Japanese cuisine — with safe options for every dietary need.' },
-  thailand: { code: 'th', placeholder: '#FFF3E0', description: 'Manage nut allergies, diabetes, and spice sensitivity across Thai street food and restaurants.' },
-  italy:    { code: 'it', placeholder: '#E8F4FD', description: "Eating gluten-free in pasta country, managing lactose intolerance, and Italy's celiac-friendly options." },
-  mexico:   { code: 'mx', placeholder: '#FAECE7', description: "Water safety, traveler's diarrhea prevention, and safe eating for diabetics and vegans." },
-  nepal:    { code: 'np', placeholder: '#FBF0E8', description: 'High altitude nutrition, water safety, and trekking food guide for Himalayan travelers.' },
-  singapore:{ code: 'sg', placeholder: '#E8EFF8', description: 'Navigating hawker centres with allergies, diabetes, and special diets in Singapore.' },
-  india:    { code: 'in', placeholder: '#EAF3DE', description: 'Vegetarian travel, spice sensitivity, and safe eating across India\'s diverse regions.' },
+  japan:    { flag: '🇯🇵', placeholder: '#E1F5EE', description: 'Navigate soy sauce, gluten, and allergens in Japanese cuisine — with safe options for every dietary need.' },
+  thailand: { flag: '🇹🇭', placeholder: '#FFF3E0', description: 'Manage nut allergies, diabetes, and spice sensitivity across Thai street food and restaurants.' },
+  italy:    { flag: '🇮🇹', placeholder: '#E8F4FD', description: "Eating gluten-free in pasta country, managing lactose intolerance, and Italy's celiac-friendly options." },
+  mexico:   { flag: '🇲🇽', placeholder: '#FAECE7', description: "Water safety, traveler's diarrhea prevention, and safe eating for diabetics and vegans." },
+  nepal:    { flag: '🇳🇵', placeholder: '#FBF0E8', description: 'High altitude nutrition, water safety, and trekking food guide for Himalayan travelers.' },
+  singapore:{ flag: '🇸🇬', placeholder: '#E8EFF8', description: 'Navigating hawker centres with allergies, diabetes, and special diets in Singapore.' },
+  india:    { flag: '🇮🇳', placeholder: '#EAF3DE', description: 'Vegetarian travel, spice sensitivity, and safe eating across India\'s diverse regions.' },
 }
 
 const CONDITION_COLORS = {
@@ -172,14 +172,8 @@ export default async function DestinationsPage() {
                     <div style={{ padding: '16px 18px 18px' }}>
                       {/* Name + flag */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '4px' }}>
-                        {meta.code && (
-                          <img
-                            src={`https://flagcdn.com/24x18/${meta.code}.png`}
-                            width="24"
-                            height="18"
-                            alt=""
-                            style={{ borderRadius: '2px', flexShrink: 0 }}
-                          />
+                        {meta.flag && (
+                          <span style={{ fontSize: '18px', lineHeight: 1, flexShrink: 0 }}>{meta.flag}</span>
                         )}
                         <h3 style={{
                           fontFamily: 'var(--font-playfair, Georgia, serif)',

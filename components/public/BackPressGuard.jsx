@@ -20,57 +20,57 @@ function getParentPath(pathname) {
   return null
 }
 
+function isPWAMode() {
+  return (
+    window.matchMedia('(display-mode: standalone)').matches ||
+    !!window.navigator.standalone ||
+    document.referrer.includes('android-app://')
+  )
+}
+
 export default function BackPressGuard() {
   const [show, setShow] = useState(false)
   const pathname = usePathname()
   const router   = useRouter()
 
-  const count        = useRef(0)
-  const isOpen       = useRef(false)
-  const skipNext     = useRef(false)
-  const resetTimer   = useRef(null)
-  const allowExit    = useRef(false)  // set after "Close App" so back presses go through
+  const count      = useRef(0)
+  const isOpen     = useRef(false)
+  const resetTimer = useRef(null)
+  const allowExit  = useRef(false)
   // Refs that stay current inside the stable effect closure
-  const pathnameRef  = useRef(pathname)
-  const routerRef    = useRef(router)
+  const pathnameRef = useRef(pathname)
+  const routerRef   = useRef(router)
 
-  // Update every render — no stale closure in the effect
+  // Update every render — no stale closure in the event handler
   pathnameRef.current = pathname
   routerRef.current   = router
 
+  // ── Sentinel management ──────────────────────────────────────────────────
+  // Push a sentinel entry above every real page so that popstate fires
+  // reliably on hardware back regardless of how we got here.
+  // Runs on mount AND after every pathname change (navigation).
   useEffect(() => {
-    // Only intercept back navigation when running as an installed PWA.
-    // In the browser the native back button works normally.
-    const isPWA =
-      window.matchMedia('(display-mode: standalone)').matches ||
-      !!window.navigator.standalone ||
-      document.referrer.includes('android-app://')
-    if (!isPWA) return
-
-    // Push a sentinel entry so popstate fires on every hardware back press
+    if (!isPWAMode()) return
+    // Don't push new sentinels while the close-app sequence is running —
+    // that would prevent history from draining to position 0.
+    if (allowExit.current) return
     window.history.pushState({ nvGuard: true }, '', window.location.href)
 
-    // Reset the counter whenever the user navigates forward (new page loaded)
-    const origPushState = window.history.pushState.bind(window.history)
-    window.history.pushState = function (state, title, url) {
-      if (!state?.nvGuard) {
-        count.current = 0
-        clearTimeout(resetTimer.current)
-      }
-      return origPushState(state, title, url)
-    }
+    // Reset the consecutive-back counter whenever the user navigates to
+    // a new page (replaces the old patched-pushState approach).
+    count.current = 0
+    clearTimeout(resetTimer.current)
+  }, [pathname])
+
+  // ── popstate listener ────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!isPWAMode()) return
 
     function onPop() {
-      // Skip the popstate that our own history.go(1) fires
-      if (skipNext.current) {
-        skipNext.current = false
-        return
-      }
-
-      // After "Close App" — let all back presses through so the user can exit
+      // After "Close App" — let all back presses reach the OS so the PWA closes.
       if (allowExit.current) return
 
-      // Allow navigations triggered by the PWAHeader back button
+      // Allow navigations triggered by the PWAHeader back button.
       if (window.__NV_HEADER_BACK__) {
         window.__NV_HEADER_BACK__ = false
         return
@@ -79,21 +79,19 @@ export default function BackPressGuard() {
       const currentPath = pathnameRef.current
       const isRoot = ROOT_PAGES.has(currentPath)
 
+      // Re-arm: push a fresh sentinel so the NEXT hardware back is also caught.
+      // This replaces the old history.go(1) + skipNext approach which had
+      // async-timing races when router.push() completed before go(1) fired.
+      window.history.pushState({ nvGuard: true }, '', window.location.href)
+
       if (!isRoot) {
-        // Sub-page: cancel the hardware back, then navigate to the logical parent.
-        // This mirrors what the PWAHeader back button does.
-        skipNext.current = true
-        window.history.go(1)
+        // Sub-page: navigate to its logical parent.
         const parent = getParentPath(currentPath) || '/'
         routerRef.current.push(parent)
         return
       }
 
-      // Root page: cancel back and count consecutive presses for the exit dialog
-      skipNext.current = true
-      window.history.go(1)
-
-      // Hardware back while dialog is open = dismiss it (stay in app)
+      // Root page: dismiss dialog on back press if it's open.
       if (isOpen.current) {
         isOpen.current = false
         setShow(false)
@@ -102,6 +100,7 @@ export default function BackPressGuard() {
         return
       }
 
+      // Root page: count consecutive back presses for the exit dialog.
       count.current += 1
       clearTimeout(resetTimer.current)
       resetTimer.current = setTimeout(() => { count.current = 0 }, 3000)
@@ -115,10 +114,8 @@ export default function BackPressGuard() {
     }
 
     window.addEventListener('popstate', onPop)
-
     return () => {
       window.removeEventListener('popstate', onPop)
-      window.history.pushState = origPushState
       clearTimeout(resetTimer.current)
     }
   }, [])
@@ -134,20 +131,22 @@ export default function BackPressGuard() {
     setShow(false)
 
     // Allow all subsequent back presses to pass through the guard
-    // so the user can actually navigate back and exit the PWA.
+    // so the OS can close the PWA window.
     allowExit.current = true
 
-    // Try to close programmatically (works in some environments)
+    // Try to close programmatically (works in some environments).
     window.close()
 
-    // Fallback: jump to the very beginning of history so that the
-    // very next hardware back press exits the PWA on Android.
+    // Fallback: drain history back to position 0 so the very next
+    // hardware back press exits the PWA on Android Chrome.
+    // The sentinel effect is suppressed (allowExit = true) so no new
+    // entries are pushed while we drain.
     setTimeout(() => {
       const stepsBack = window.history.length - 1
       if (stepsBack > 0) {
         window.history.go(-stepsBack)
       }
-    }, 300)
+    }, 100)
   }
 
   if (!show) return null

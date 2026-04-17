@@ -60,7 +60,7 @@ export default function InstallBanner() {
   if (!show || installed) return null
 
   return (
-    <div style={{
+    <div className="md:hidden" style={{
       background: '#0F6E56',
       borderBottom: '1px solid #085041',
       padding: '7px 16px',

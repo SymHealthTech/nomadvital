@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
-import { useSession, signIn } from 'next-auth/react'
+import { useSession } from 'next-auth/react'
 import { getPersonaById } from '@/lib/travelerPersonas'
 
 const FREE_LIMIT = 3
@@ -144,7 +144,6 @@ function MicButton({ onTranscript, disabled }) {
 export default function AskPage() {
   const { data: session, status } = useSession()
   const isPro = session?.user?.plan === 'pro'
-  const isGuest = session?.user?.isGuest
 
   const [personaId, setPersonaId] = useState('general')
   const [inputValue, setInputValue] = useState('')
@@ -174,19 +173,9 @@ export default function AskPage() {
     }
   }, [])
 
-  // Auto guest session — only in browser, never in PWA
+  // Fetch saved traveler type for logged-in users
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      const isPWA = document.body.classList.contains('pwa-mode')
-      if (!isPWA) {
-        signIn('credentials', { type: 'guest', redirect: false })
-      }
-    }
-  }, [status])
-
-  // Fetch saved traveler type for logged-in non-guest users
-  useEffect(() => {
-    if (status === 'authenticated' && !isGuest) {
+    if (status === 'authenticated') {
       fetch('/api/user/profile')
         .then(r => r.json())
         .then(d => { if (d.travelerType) setPersonaId(d.travelerType) })
@@ -270,8 +259,8 @@ export default function AskPage() {
           Ask anything about food safety, nutrition &amp; health while traveling.
         </p>
 
-        {/* Persona badge — only for logged-in non-guest users */}
-        {!isGuest && persona.id !== 'general' && (
+        {/* Persona badge */}
+        {persona.id !== 'general' && (
           <div style={{ marginTop: '10px', display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '20px', padding: '4px 12px' }}>
             <span style={{ fontSize: '14px' }}>{persona.emoji}</span>
             <span style={{ fontSize: '11px', color: '#E1F5EE', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>{persona.name}</span>

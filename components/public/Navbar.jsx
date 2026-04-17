@@ -154,7 +154,7 @@ export default function Navbar() {
               <Link href="/login" className="text-sm font-medium hover:text-[#5DCAA5] transition-colors">
                 Sign in
               </Link>
-              <Link href="/guest" className="bg-[#1D9E75] hover:bg-[#0F6E56] text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+              <Link href="/signup" className="bg-[#1D9E75] hover:bg-[#0F6E56] text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
                 Start free
               </Link>
             </>
@@ -210,7 +210,7 @@ export default function Navbar() {
               )}
             </div>
           ) : (
-            <Link href="/guest" style={{ background: '#1D9E75', color: 'white', fontSize: '12px', fontWeight: '600', padding: '6px 14px', borderRadius: '20px', textDecoration: 'none', whiteSpace: 'nowrap' }}>
+            <Link href="/signup" style={{ background: '#1D9E75', color: 'white', fontSize: '12px', fontWeight: '600', padding: '6px 14px', borderRadius: '20px', textDecoration: 'none', whiteSpace: 'nowrap' }}>
               Start free
             </Link>
           )}
@@ -252,7 +252,7 @@ export default function Navbar() {
           ) : (
             <>
               <Link href="/login" onClick={() => setMenuOpen(false)}>Sign in</Link>
-              <Link href="/guest" onClick={() => setMenuOpen(false)} className="bg-[#1D9E75] text-white text-center px-4 py-2 rounded-lg font-semibold">
+              <Link href="/signup" onClick={() => setMenuOpen(false)} className="bg-[#1D9E75] text-white text-center px-4 py-2 rounded-lg font-semibold">
                 Start free
               </Link>
             </>

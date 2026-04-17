@@ -63,7 +63,7 @@ export default function MobileStickyBar() {
         }}
       >
         <Link
-          href="/guest"
+          href="/signup"
           style={{
             display: 'block',
             background: '#1D9E75',

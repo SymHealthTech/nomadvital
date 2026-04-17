@@ -83,7 +83,7 @@ export default async function HeroSection() {
           ) : (
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
-                href="/guest"
+                href="/signup"
                 className="btn-primary btn-pulse font-inter bg-[#1D9E75] text-white font-semibold text-base px-8 py-3.5 rounded-xl w-full sm:w-auto"
               >
                 Start free — no card needed

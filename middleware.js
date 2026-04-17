@@ -26,15 +26,12 @@ export default auth((req) => {
   }
 
   // Routes that require a real account (login or signup)
-  const loginRequired = ['/planner', '/dashboard']
+  const loginRequired = ['/planner', '/dashboard', '/ask']
   if (loginRequired.some((route) => pathname.startsWith(route))) {
     if (!session) {
       return NextResponse.redirect(new URL('/login', req.url))
     }
   }
-
-  // /ask is open to all — unauthenticated visitors get a guest session created
-  // directly inside the page component itself (no middleware redirect needed)
 
   return NextResponse.next()
 })
@@ -45,5 +42,7 @@ export const config = {
     '/api/admin/:path*',
     '/planner/:path*',
     '/dashboard/:path*',
+    '/ask/:path*',
+    '/ask',
   ],
 }
