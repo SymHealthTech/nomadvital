@@ -99,7 +99,7 @@ export default function Navbar() {
               <button
                 style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0 16px', marginBottom: '-12px', display: 'flex', alignItems: 'center', gap: '8px' }}
               >
-                <UserAvatar name={user?.name} plan={user?.plan} image={user?.image} />
+                <UserAvatar name={user?.name} plan={user?.plan} image={user?.profileImage || user?.image} />
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
                   style={{ color: '#9FE1CB', transition: 'transform 0.15s', transform: userMenuOpen ? 'rotate(180deg)' : 'none' }}>
                   <path d="M6 9l6 6 6-6"/>
@@ -173,7 +173,7 @@ export default function Navbar() {
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
                 style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' }}
               >
-                <UserAvatar name={user?.name} plan={user?.plan} image={user?.image} />
+                <UserAvatar name={user?.name} plan={user?.plan} image={user?.profileImage || user?.image} />
               </button>
               {userMenuOpen && (
                 <div style={{

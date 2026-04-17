@@ -53,7 +53,7 @@ export default async function DashboardPage() {
       <PWAInstallModal />
 
       {/* Header — avatar + name + plan badge */}
-      <div className="flex items-center gap-4 mb-8">
+      <div className="flex items-center gap-4 mb-4">
         <ProfileAvatar initials={initials} isPro={isPro} initialImage={profileImage} />
         <div>
           <h1 className="text-xl font-bold text-[#085041]">

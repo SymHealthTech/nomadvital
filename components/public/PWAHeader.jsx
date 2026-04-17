@@ -57,9 +57,10 @@ export default function PWAHeader() {
   const isAuthPage = pathname === '/login' || pathname === '/signup'
   const { title, showLogo } = getPageMeta(pathname)
 
-  const isPro    = session?.user?.plan === 'pro'
-  const userName = session?.user?.name
-  const isGuest  = session?.user?.isGuest
+  const isPro      = session?.user?.plan === 'pro'
+  const userName   = session?.user?.name
+  const isGuest    = session?.user?.isGuest
+  const userImage  = session?.user?.profileImage || null
 
   const initials = userName
     ? userName.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
@@ -138,9 +139,12 @@ export default function PWAHeader() {
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: '11px', fontWeight: '700', color: '#fff',
               fontFamily: 'var(--font-inter, Inter, sans-serif)',
-              position: 'relative',
+              position: 'relative', overflow: 'hidden',
             }}>
-              {initials || '?'}
+              {userImage ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={userImage} alt={userName || 'User'} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+              ) : (initials || '?')}
               {isPro && (
                 <div style={{
                   position: 'absolute', bottom: '-2px', right: '-2px',

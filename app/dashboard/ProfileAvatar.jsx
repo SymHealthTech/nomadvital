@@ -46,15 +46,15 @@ export default function ProfileAvatar({ initials, isPro, initialImage }) {
   }
 
   return (
-    <div style={{ position: 'relative', width: '72px', height: '72px', flexShrink: 0 }}>
+    <div style={{ position: 'relative', width: '60px', height: '60px', flexShrink: 0 }}>
       {/* Avatar circle */}
       <div style={{
-        width: '72px', height: '72px', borderRadius: '50%',
+        width: '60px', height: '60px', borderRadius: '50%',
         background: image ? 'transparent' : bgColor,
-        border: `3px solid ${bgColor}`,
+        border: `1.5px solid ${bgColor}`,
         overflow: 'hidden',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        boxShadow: '0 2px 12px rgba(8,80,65,0.18)',
+        boxShadow: '0 2px 8px rgba(8,80,65,0.14)',
       }}>
         {image ? (
           <img
@@ -64,7 +64,7 @@ export default function ProfileAvatar({ initials, isPro, initialImage }) {
           />
         ) : (
           <span style={{
-            fontSize: '22px', fontWeight: '700', color: '#fff',
+            fontSize: '18px', fontWeight: '700', color: '#fff',
             fontFamily: 'var(--font-inter, Inter, sans-serif)',
             userSelect: 'none',
           }}>
@@ -80,9 +80,9 @@ export default function ProfileAvatar({ initials, isPro, initialImage }) {
         aria-label="Change profile photo"
         style={{
           position: 'absolute', bottom: '0', right: '0',
-          width: '24px', height: '24px', borderRadius: '50%',
+          width: '20px', height: '20px', borderRadius: '50%',
           background: '#fff',
-          border: `2px solid ${bgColor}`,
+          border: `1.5px solid ${bgColor}`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           cursor: uploading ? 'wait' : 'pointer',
           boxShadow: '0 1px 4px rgba(0,0,0,0.15)',
