@@ -28,6 +28,15 @@ const UserSchema = new mongoose.Schema({
     enum: ['free', 'pro'],
     default: 'free',
   },
+  planType: {
+    type: String,
+    enum: ['free', 'pro-monthly', 'pro-annually'],
+    default: 'free',
+  },
+  planExpiryDate: {
+    type: Date,
+    default: null,
+  },
 
   // Dodo Payments fields
   dodoCustomerId: {
@@ -45,6 +54,13 @@ const UserSchema = new mongoose.Schema({
   lastQuestionDate: {
     type: Date,
   },
+  monthlyQuestionCount: {
+    type: Number,
+    default: 0,
+  },
+  lastMonthDate: {
+    type: Date,
+  },
 
   // Planner usage tracking (separate from AI advisor)
   dailyPlannerCount: {
@@ -52,6 +68,14 @@ const UserSchema = new mongoose.Schema({
     default: 0,
   },
   lastPlannerDate: {
+    type: Date,
+  },
+
+  // Admin OTP for sensitive actions (plan change / delete)
+  adminOtpCode: {
+    type: String,
+  },
+  adminOtpExpires: {
     type: Date,
   },
 

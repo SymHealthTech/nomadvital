@@ -27,31 +27,51 @@ async function loadStats() {
 
     const now = new Date()
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
 
-    const [totalUsers, proUsers, questionsAgg, newSignupsThisWeek, recentSignupsRaw] = await Promise.all([
+    const [
+      totalUsers,
+      proMonthlyUsers,
+      proAnnuallyUsers,
+      questionsAgg,
+      monthlyQuestionsAgg,
+      newSignupsThisWeek,
+      recentSignupsRaw,
+    ] = await Promise.all([
       User.countDocuments({ isGuest: { $ne: true } }),
-      User.countDocuments({ isGuest: { $ne: true }, plan: 'pro' }),
+      User.countDocuments({ isGuest: { $ne: true }, plan: 'pro', planType: 'pro-monthly' }),
+      User.countDocuments({ isGuest: { $ne: true }, plan: 'pro', planType: 'pro-annually' }),
       User.aggregate([
         { $match: { lastQuestionDate: { $gte: startOfToday } } },
         { $group: { _id: null, total: { $sum: '$dailyQuestionCount' } } },
       ]),
+      User.aggregate([
+        { $match: { lastMonthDate: { $gte: startOfMonth } } },
+        { $group: { _id: null, total: { $sum: '$monthlyQuestionCount' } } },
+      ]),
       User.countDocuments({ isGuest: { $ne: true }, createdAt: { $gte: sevenDaysAgo } }),
       User.find({ isGuest: { $ne: true } })
-        .select('name email plan createdAt')
+        .select('name email plan planType createdAt')
         .sort({ createdAt: -1 })
         .limit(10)
         .lean(),
     ])
 
+    const proUsers = proMonthlyUsers + proAnnuallyUsers
     const questionsToday = questionsAgg[0]?.total || 0
-    const monthlyRevenue = proUsers * 12
+    const questionsThisMonth = monthlyQuestionsAgg[0]?.total || 0
+
+    // MRR: pro-monthly × $12 + pro-annually amortised ($99 ÷ 12 ≈ $8.25)
+    const monthlyRevenue = proMonthlyUsers * 12 + proAnnuallyUsers * 8.25
     const apiCostToday = questionsToday * 0.004
+    const apiCostThisMonth = questionsThisMonth * 0.004
 
     const recentSignups = recentSignupsRaw.map((u) => ({
       name: u.name,
       email: u.email,
       plan: u.plan,
+      planType: u.planType,
       createdAt: u.createdAt ? u.createdAt.toISOString() : null,
     }))
 
@@ -59,9 +79,13 @@ async function loadStats() {
       ok: true,
       totalUsers,
       proUsers,
+      proMonthlyUsers,
+      proAnnuallyUsers,
       monthlyRevenue,
       questionsToday,
+      questionsThisMonth,
       apiCostToday,
+      apiCostThisMonth,
       newSignupsThisWeek,
       recentSignups,
     }
@@ -89,10 +113,11 @@ export default async function AdminDashboard() {
 
   const metrics = [
     { label: 'Total Users', value: stats.totalUsers.toLocaleString(), sub: 'Registered (non-guest)' },
-    { label: 'Pro Subscribers', value: stats.proUsers.toLocaleString(), sub: 'Paid plan' },
-    { label: 'Monthly Revenue', value: formatCurrency(stats.monthlyRevenue), sub: '$12 × Pro users' },
-    { label: 'AI Questions Today', value: stats.questionsToday.toLocaleString(), sub: 'Claude calls' },
+    { label: 'Pro Subscribers', value: stats.proUsers.toLocaleString(), sub: `${stats.proMonthlyUsers} monthly · ${stats.proAnnuallyUsers} annual` },
+    { label: 'Monthly Revenue', value: formatCurrencyCents(stats.monthlyRevenue), sub: `$12×monthly + $8.25×annual (MRR)` },
+    { label: 'AI Questions Today', value: stats.questionsToday.toLocaleString(), sub: 'Claude calls (all users)' },
     { label: 'Est. API Cost Today', value: formatCurrencyCents(stats.apiCostToday), sub: '$0.004 per question' },
+    { label: 'Est. API Cost This Month', value: formatCurrencyCents(stats.apiCostThisMonth), sub: `${stats.questionsThisMonth.toLocaleString()} questions this month` },
     { label: 'New Signups (7d)', value: stats.newSignupsThisWeek.toLocaleString(), sub: 'Last 7 days' },
   ]
 
@@ -100,7 +125,7 @@ export default async function AdminDashboard() {
     <div>
       <AdminHeader title="Dashboard" subtitle="Overview of NomadVital activity" />
       <div className="p-6">
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {metrics.map((m) => (
             <div key={m.label} className="bg-white rounded-xl border border-[#D3D1C7] p-5 shadow-sm">
               <div className="text-xs font-bold text-[#888780] tracking-widest uppercase mb-2">{m.label}</div>
@@ -140,7 +165,11 @@ export default async function AdminDashboard() {
                             : 'bg-[#F1EFE8] text-[#5F5E5A]'
                         }`}
                       >
-                        {u.plan === 'pro' ? 'Pro' : 'Free'}
+                        {u.planType === 'pro-monthly'
+                          ? 'Pro Monthly'
+                          : u.planType === 'pro-annually'
+                          ? 'Pro Annual'
+                          : 'Free'}
                       </span>
                     </td>
                     <td className="px-5 py-3 text-[#5F5E5A]">{formatDate(u.createdAt)}</td>

@@ -181,7 +181,7 @@ export default function AskPage() {
         .then(d => { if (d.travelerType) setPersonaId(d.travelerType) })
         .catch(() => {})
     }
-  }, [status, isGuest])
+  }, [status])
 
   const persona = getPersonaById(personaId)
   const questionsRemaining = questionsUsed !== null ? Math.max(0, FREE_LIMIT - questionsUsed) : null

@@ -144,14 +144,34 @@ export async function POST(request) {
   }
 
   // Increment usage count after a successful response
-  if (user.plan === 'free') {
-    if (isPlanner) {
+  if (isPlanner) {
+    if (user.plan === 'free') {
       user.dailyPlannerCount += 1
       user.lastPlannerDate = new Date()
-    } else {
-      user.dailyQuestionCount += 1
-      user.lastQuestionDate = new Date()
+      await user.save()
     }
+  } else {
+    // Track daily question count for ALL users (used in admin analytics)
+    const todayStr = new Date().toDateString()
+    const lastDateStr = user.lastQuestionDate ? new Date(user.lastQuestionDate).toDateString() : null
+    if (lastDateStr !== todayStr) {
+      user.dailyQuestionCount = 0
+    }
+    user.dailyQuestionCount += 1
+    user.lastQuestionDate = new Date()
+
+    // Track monthly question count for ALL users (used in admin cost analytics)
+    const now = new Date()
+    const thisMonth = `${now.getFullYear()}-${now.getMonth()}`
+    const storedMonth = user.lastMonthDate
+      ? `${new Date(user.lastMonthDate).getFullYear()}-${new Date(user.lastMonthDate).getMonth()}`
+      : null
+    if (storedMonth !== thisMonth) {
+      user.monthlyQuestionCount = 0
+    }
+    user.monthlyQuestionCount = (user.monthlyQuestionCount || 0) + 1
+    user.lastMonthDate = now
+
     await user.save()
   }
 

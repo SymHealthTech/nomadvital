@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 
-function UserAvatar({ name, plan }) {
+function UserAvatar({ name, plan, image }) {
   const initials = name
     ? name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
     : '?'
@@ -24,8 +24,12 @@ function UserAvatar({ name, plan }) {
         color: '#fff',
         flexShrink: 0,
         fontFamily: 'var(--font-inter, Inter, sans-serif)',
+        overflow: 'hidden',
       }}>
-        {initials}
+        {image ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={image} alt={name || 'User'} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} referrerPolicy="no-referrer" />
+        ) : initials}
       </div>
       {plan === 'pro' && (
         <span style={{
@@ -95,7 +99,7 @@ export default function Navbar() {
               <button
                 style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0 16px', marginBottom: '-12px', display: 'flex', alignItems: 'center', gap: '8px' }}
               >
-                <UserAvatar name={user?.name} plan={user?.plan} />
+                <UserAvatar name={user?.name} plan={user?.plan} image={user?.image} />
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
                   style={{ color: '#9FE1CB', transition: 'transform 0.15s', transform: userMenuOpen ? 'rotate(180deg)' : 'none' }}>
                   <path d="M6 9l6 6 6-6"/>
@@ -169,7 +173,7 @@ export default function Navbar() {
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
                 style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' }}
               >
-                <UserAvatar name={user?.name} plan={user?.plan} />
+                <UserAvatar name={user?.name} plan={user?.plan} image={user?.image} />
               </button>
               {userMenuOpen && (
                 <div style={{
