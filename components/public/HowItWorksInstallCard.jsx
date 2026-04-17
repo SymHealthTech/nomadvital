@@ -1,23 +1,20 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useIsPWA } from '@/hooks/useIsPWA'
 
 /**
  * Permanent "Install as App" card rendered at the bottom of HowItWorksSection.
  * Hides automatically when the user is already running as an installed PWA.
  */
 export default function HowItWorksInstallCard() {
+  const isPWA = useIsPWA()
   const [platform, setPlatform] = useState(null)
   const [prompt,   setPrompt]   = useState(null)
   const [showTip,  setShowTip]  = useState(false)
   const [done,     setDone]     = useState(false)
 
   useEffect(() => {
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      setPlatform('installed')
-      return
-    }
-
     // Register beforeinstallprompt FIRST — before any early returns
     const handler = e => { e.preventDefault(); setPrompt(e) }
     window.addEventListener('beforeinstallprompt', handler)
@@ -51,8 +48,8 @@ export default function HowItWorksInstallCard() {
   const isIOS     = platform === 'ios'
   const isAndroid = platform === 'android'
 
-  // Show "installed" confirmation card
-  if (platform === 'installed' || done) {
+  // Show "installed" confirmation card when running as PWA or after just installing
+  if (isPWA || done) {
     return (
       <div style={{ marginTop: '40px' }}>
         <div style={{

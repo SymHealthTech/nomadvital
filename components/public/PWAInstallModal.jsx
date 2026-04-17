@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useIsPWA } from '@/hooks/useIsPWA'
 
 const SESSION_KEY = 'showPWAPrompt'
 
@@ -11,6 +12,7 @@ const SESSION_KEY = 'showPWAPrompt'
  * clears it, and shows the install prompt.
  */
 export default function PWAInstallModal() {
+  const isPWA = useIsPWA()
   const [show,           setShow]     = useState(false)
   const [platform,       setPlatform] = useState(null)
   const [deferredPrompt, setPrompt]   = useState(null)
@@ -24,7 +26,7 @@ export default function PWAInstallModal() {
     sessionStorage.removeItem(SESSION_KEY)
 
     /* Already installed as PWA — skip */
-    if (window.matchMedia('(display-mode: standalone)').matches) return
+    if (isPWA) return
 
     const ua  = navigator.userAgent.toLowerCase()
     const ios = /iphone|ipad|ipod/.test(ua) && !window.navigator.standalone
@@ -34,7 +36,7 @@ export default function PWAInstallModal() {
     const handler = e => { e.preventDefault(); setPrompt(e) }
     window.addEventListener('beforeinstallprompt', handler)
     return () => window.removeEventListener('beforeinstallprompt', handler)
-  }, [])
+  }, [isPWA])
 
   async function handleInstall() {
     if (!deferredPrompt) return

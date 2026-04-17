@@ -79,13 +79,10 @@ export default function BottomTabBar() {
   const router   = useRouter()
   const { status } = useSession()
 
-  // In PWA mode, all tabs require authentication.
+  // All tabs require authentication in the PWA.
   // Block navigation and redirect to login instead of letting
   // the page render even briefly (prevents the blink).
   function handleTabClick(e, href) {
-    const isPWA = typeof window !== 'undefined' && !!window.__NV_PWA__
-    if (!isPWA) return // browser — allow normal navigation
-
     if (status !== 'authenticated') {
       e.preventDefault()
       // Ensure protected content is hidden before navigating

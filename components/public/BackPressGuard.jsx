@@ -24,14 +24,6 @@ function getParentPath(pathname) {
   return null
 }
 
-function isPWAMode() {
-  return (
-    window.matchMedia('(display-mode: standalone)').matches ||
-    !!window.navigator.standalone ||
-    document.referrer.includes('android-app://')
-  )
-}
-
 // useLayoutEffect runs synchronously before paint on the client, cutting the
 // race window where a fast back press could fire before the sentinel is pushed.
 // On the server (SSR) useLayoutEffect is not available, so fall back to useEffect
@@ -67,7 +59,6 @@ export default function BackPressGuard() {
   // history stack isn't refilled while we're trying to empty it.
   useClientLayoutEffect(() => {
     if (typeof window === 'undefined') return
-    if (!isPWAMode()) return
     if (allowExit.current) return
     window.history.pushState({ nvGuard: true }, '', window.location.href)
   }, [pathname])
@@ -75,7 +66,6 @@ export default function BackPressGuard() {
   // ── popstate listener ────────────────────────────────────────────────────
   useEffect(() => {
     if (typeof window === 'undefined') return
-    if (!isPWAMode()) return
 
     function onPop() {
       // Close-app drain in progress — let all events pass through to the OS.

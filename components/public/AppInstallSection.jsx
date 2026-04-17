@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useIsPWA } from '@/hooks/useIsPWA'
 
 const benefits = [
   {
@@ -50,17 +51,14 @@ const iosSteps = [
 ]
 
 export default function AppInstallSection() {
-  const [platform, setPlatform]         = useState(null)   // null | 'ios' | 'android' | 'desktop' | 'installed'
+  const isPWA = useIsPWA()
+  const [platform, setPlatform]         = useState(null)   // null | 'ios' | 'android' | 'desktop'
   const [deferredPrompt, setPrompt]     = useState(null)
   const [installing, setInstalling]     = useState(false)
   const [installed, setInstalled]       = useState(false)
   const [showIOS, setShowIOS]           = useState(false)
 
   useEffect(() => {
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      setPlatform('installed')
-      return
-    }
     const ua = navigator.userAgent.toLowerCase()
     const ios = /iphone|ipad|ipod/.test(ua) && !window.navigator.standalone
     if (ios) { setPlatform('ios'); return }
@@ -82,8 +80,8 @@ export default function AppInstallSection() {
     setPrompt(null)
   }
 
-  /* Don't render if already installed */
-  if (platform === 'installed' || installed) return null
+  /* Don't render if already running as PWA or just installed */
+  if (isPWA || installed) return null
   /* Don't flash on server / before detection */
   if (!platform) return null
 

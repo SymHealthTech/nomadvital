@@ -1,20 +1,18 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useIsPWA } from '@/hooks/useIsPWA'
 
 export default function InstallBanner() {
+  const isPWA = useIsPWA()
   const [deferredPrompt, setDeferredPrompt] = useState(null)
   const [isIOS, setIsIOS] = useState(false)
   const [show, setShow] = useState(false)
   const [showIOSSteps, setShowIOSSteps] = useState(false) // iOS: toggle tap instructions
-  const [installed, setInstalled] = useState(false)
 
   useEffect(() => {
     // Already running as installed PWA — hide everything
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      setInstalled(true)
-      return
-    }
+    if (isPWA) return
 
     // User already dismissed this session
     if (sessionStorage.getItem('pwaInstallDismissed') === 'true') return
@@ -39,7 +37,7 @@ export default function InstallBanner() {
     }
     window.addEventListener('beforeinstallprompt', handler)
     return () => window.removeEventListener('beforeinstallprompt', handler)
-  }, [])
+  }, [isPWA])
 
   function dismiss() {
     sessionStorage.setItem('pwaInstallDismissed', 'true')
@@ -50,14 +48,11 @@ export default function InstallBanner() {
     if (!deferredPrompt) return
     deferredPrompt.prompt()
     const { outcome } = await deferredPrompt.userChoice
-    if (outcome === 'accepted') {
-      setInstalled(true)
-      setShow(false)
-    }
+    if (outcome === 'accepted') setShow(false)
     setDeferredPrompt(null)
   }
 
-  if (!show || installed) return null
+  if (!show) return null
 
   return (
     <div className="md:hidden flex items-center justify-center" style={{

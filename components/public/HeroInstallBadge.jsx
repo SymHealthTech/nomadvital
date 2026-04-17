@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useIsPWA } from '@/hooks/useIsPWA'
 
 /**
  * Persistent "Install app" badge shown in the hero section.
@@ -8,17 +9,13 @@ import { useEffect, useState } from 'react'
  * No dismiss — always visible to browser users.
  */
 export default function HeroInstallBadge() {
-  const [platform, setPlatform]     = useState(null)   // null | 'ios' | 'android' | 'desktop' | 'installed'
+  const isPWA = useIsPWA()
+  const [platform, setPlatform]     = useState(null)   // null | 'ios' | 'android' | 'desktop'
   const [prompt,   setPrompt]       = useState(null)
   const [showTip,  setShowTip]      = useState(false)  // iOS tooltip
   const [done,     setDone]         = useState(false)
 
   useEffect(() => {
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      setPlatform('installed')
-      return
-    }
-
     // Register beforeinstallprompt FIRST — before any early returns
     // so Android and desktop both capture it
     const handler = e => { e.preventDefault(); setPrompt(e) }
@@ -50,8 +47,8 @@ export default function HeroInstallBadge() {
   // Hide when not yet detected or on desktop
   if (!platform || platform === 'desktop') return null
 
-  // Show "installed" confirmation badge
-  if (platform === 'installed' || done) {
+  // Show "installed" confirmation badge when running as PWA or after just installing
+  if (isPWA || done) {
     return (
       <div style={{ marginTop: '18px', display: 'flex', justifyContent: 'center' }}>
         <div style={{
