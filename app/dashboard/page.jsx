@@ -9,6 +9,8 @@ import SignOutButton from './SignOutButton'
 import { Suspense } from 'react'
 import PaymentSuccessRefresh from './PaymentSuccessRefresh'
 import PWAInstallModal from '@/components/public/PWAInstallModal'
+import ProfileAvatar from './ProfileAvatar'
+import QuickAccessCards from './QuickAccessCards'
 
 export const metadata = {
   title: 'Dashboard — NomadVital',
@@ -23,10 +25,11 @@ export default async function DashboardPage() {
 
   let dailyCount = 0
   let travelerType = 'general'
+  let profileImage = null
 
   try {
     await connectDB()
-    const dbUser = await User.findById(id).select('dailyQuestionCount lastQuestionDate travelerType')
+    const dbUser = await User.findById(id).select('dailyQuestionCount lastQuestionDate travelerType profileImage')
     if (dbUser) {
       const today = new Date().toDateString()
       const lastDate = dbUser.lastQuestionDate
@@ -34,6 +37,7 @@ export default async function DashboardPage() {
         : null
       dailyCount = lastDate === today ? (dbUser.dailyQuestionCount ?? 0) : 0
       travelerType = dbUser.travelerType || 'general'
+      profileImage = dbUser.profileImage || null
     }
   } catch {
     // non-fatal
@@ -48,17 +52,9 @@ export default async function DashboardPage() {
       <Suspense fallback={null}><PaymentSuccessRefresh /></Suspense>
       <PWAInstallModal />
 
-      {/* Header — name + plan badge only; email shown below for Pro */}
+      {/* Header — avatar + name + plan badge */}
       <div className="flex items-center gap-4 mb-8">
-        <div style={{
-          width: '52px', height: '52px', borderRadius: '50%',
-          background: isPro ? '#085041' : '#1D9E75',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '18px', fontWeight: '700', color: '#fff',
-          flexShrink: 0, fontFamily: 'var(--font-inter, Inter, sans-serif)',
-        }}>
-          {initials}
-        </div>
+        <ProfileAvatar initials={initials} isPro={isPro} initialImage={profileImage} />
         <div>
           <h1 className="text-xl font-bold text-[#085041]">
             Welcome{name ? `, ${name.split(' ')[0]}` : ''}
@@ -171,25 +167,12 @@ export default async function DashboardPage() {
           )}
         </div>
 
-        {/* Quick links */}
+        {/* Quick Access */}
         <div className="bg-white rounded-2xl border border-[#D3D1C7] p-6">
           <div className="text-[11px] font-medium text-[#1D9E75] tracking-[2px] uppercase mb-4">
             Quick Access
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            {[
-              { href: '/ask',          emoji: '🤖', label: 'AI Advisor'  },
-              { href: '/destinations', emoji: '🌍', label: 'Explore'     },
-              { href: '/planner',      emoji: '📋', label: 'Planner'     },
-              { href: '/blog',         emoji: '📖', label: 'Blog'        },
-            ].map(item => (
-              <Link key={item.href} href={item.href}
-                className="flex items-center gap-2 p-3 rounded-xl bg-[#F1EFE8] hover:bg-[#e8e5dc] transition-colors overflow-hidden">
-                <span className="text-xl flex-shrink-0">{item.emoji}</span>
-                <span className="text-sm font-medium text-[#085041] truncate">{item.label}</span>
-              </Link>
-            ))}
-          </div>
+          <QuickAccessCards />
         </div>
 
         {/* Traveler type selector */}

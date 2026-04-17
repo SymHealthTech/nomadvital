@@ -61,6 +61,12 @@ const UserSchema = new mongoose.Schema({
     default: 'general',
   },
 
+  // Profile photo (base64 data URL or external URL)
+  profileImage: {
+    type: String,
+    default: null,
+  },
+
   // Single-device session enforcement
   // Regenerated on every login — old JWTs with a stale token are rejected
   activeSessionToken: {
