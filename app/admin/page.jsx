@@ -32,7 +32,7 @@ async function loadStats() {
 
     const [
       totalUsers,
-      proMonthlyUsers,
+      proUsers,
       proAnnuallyUsers,
       questionsAgg,
       monthlyQuestionsAgg,
@@ -40,7 +40,8 @@ async function loadStats() {
       recentSignupsRaw,
     ] = await Promise.all([
       User.countDocuments({ isGuest: { $ne: true } }),
-      User.countDocuments({ isGuest: { $ne: true }, plan: 'pro', planType: 'pro-monthly' }),
+      // Count ALL pro users regardless of planType (handles legacy users set before planType field existed)
+      User.countDocuments({ isGuest: { $ne: true }, plan: 'pro' }),
       User.countDocuments({ isGuest: { $ne: true }, plan: 'pro', planType: 'pro-annually' }),
       User.aggregate([
         { $match: { lastQuestionDate: { $gte: startOfToday } } },
@@ -58,7 +59,7 @@ async function loadStats() {
         .lean(),
     ])
 
-    const proUsers = proMonthlyUsers + proAnnuallyUsers
+    const proMonthlyUsers = proUsers - proAnnuallyUsers
     const questionsToday = questionsAgg[0]?.total || 0
     const questionsThisMonth = monthlyQuestionsAgg[0]?.total || 0
 

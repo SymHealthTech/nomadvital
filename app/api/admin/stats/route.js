@@ -27,7 +27,7 @@ export async function GET() {
 
     const [
       totalUsers,
-      proMonthlyUsers,
+      proUsers,
       proAnnuallyUsers,
       questionsAgg,
       monthlyQuestionsAgg,
@@ -36,7 +36,9 @@ export async function GET() {
       recentSignupsRaw,
     ] = await Promise.all([
       User.countDocuments({ isGuest: { $ne: true } }),
-      User.countDocuments({ isGuest: { $ne: true }, plan: 'pro', planType: 'pro-monthly' }),
+      // Count ALL pro users regardless of planType (handles legacy users set before planType field existed)
+      User.countDocuments({ isGuest: { $ne: true }, plan: 'pro' }),
+      // Annually is distinct; everything else (pro-monthly or unset) counts as monthly for billing
       User.countDocuments({ isGuest: { $ne: true }, plan: 'pro', planType: 'pro-annually' }),
       // Today's questions: users who asked a question today
       User.aggregate([
@@ -58,7 +60,7 @@ export async function GET() {
         .lean(),
     ])
 
-    const proUsers = proMonthlyUsers + proAnnuallyUsers
+    const proMonthlyUsers = proUsers - proAnnuallyUsers
     const questionsToday = questionsAgg[0]?.total || 0
     const questionsThisMonth = monthlyQuestionsAgg[0]?.total || 0
 
