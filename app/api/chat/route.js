@@ -24,6 +24,15 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Message is required.' }, { status: 400 })
   }
 
+  // Single DB connection shared by both guest and registered-user paths below.
+  // Previously each branch called connectDB() independently, duplicating the
+  // try/catch and the connection-pool check on every request.
+  try {
+    await connectDB()
+  } catch {
+    return NextResponse.json({ error: 'Service temporarily unavailable.' }, { status: 503 })
+  }
+
   // Guest users — enforce daily limit tracked by persistent device ID
   // (falls back to IP when deviceId is absent so server-side tools still work)
   if (session.user.isGuest) {
@@ -34,12 +43,6 @@ export async function POST(request) {
       'unknown'
 
     const today = new Date().toDateString()
-
-    try {
-      await connectDB()
-    } catch {
-      return NextResponse.json({ error: 'Service temporarily unavailable.' }, { status: 503 })
-    }
 
     let usage = await GuestUsage.findOne({ ip: identifier })
     if (!usage) {
@@ -76,7 +79,6 @@ export async function POST(request) {
 
   let user
   try {
-    await connectDB()
     user = await User.findById(session.user.id)
   } catch {
     return NextResponse.json({ error: 'Service temporarily unavailable. Please try again.' }, { status: 503 })

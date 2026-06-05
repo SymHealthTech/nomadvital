@@ -55,7 +55,10 @@ export async function POST(request) {
       )
     }
 
-    const hashedPassword = await bcrypt.hash(password, 12)
+    // Cost 10 ≈ 60 ms on a serverless function; cost 12 ≈ 250 ms.
+    // NIST recommends cost ≥10. Existing stored hashes are unaffected
+    // because bcrypt.compare() reads the cost from the stored hash.
+    const hashedPassword = await bcrypt.hash(password, 10)
     const role = email.toLowerCase() === process.env.ADMIN_EMAIL?.toLowerCase() ? 'admin' : 'user'
 
     // Generate email verification token (expires in 24 h)

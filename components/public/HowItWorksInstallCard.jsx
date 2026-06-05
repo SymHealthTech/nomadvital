@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useIsPWA } from '@/hooks/useIsPWA'
+import { usePWAInstall } from '@/hooks/usePWAInstall'
 
 /**
  * Permanent "Install as App" card rendered at the bottom of HowItWorksSection.
@@ -9,47 +10,28 @@ import { useIsPWA } from '@/hooks/useIsPWA'
  */
 export default function HowItWorksInstallCard() {
   const isPWA = useIsPWA()
+  const { canInstall, install, isInstalled } = usePWAInstall()
   const [platform, setPlatform] = useState(null)
-  const [prompt,   setPrompt]   = useState(null)
   const [showTip,  setShowTip]  = useState(false)
-  const [done,     setDone]     = useState(false)
 
   useEffect(() => {
-    // Register beforeinstallprompt FIRST — before any early returns
-    const handler = e => { e.preventDefault(); setPrompt(e) }
-    window.addEventListener('beforeinstallprompt', handler)
-
     const ua  = navigator.userAgent.toLowerCase()
     const ios = /iphone|ipad|ipod/.test(ua) && !window.navigator.standalone
-    if (ios) {
-      setPlatform('ios')
-      return () => window.removeEventListener('beforeinstallprompt', handler)
-    }
-    if (/android/.test(ua)) {
-      setPlatform('android')
-      return () => window.removeEventListener('beforeinstallprompt', handler)
-    }
-    // Desktop — hide the card (mobile-only feature)
+    if (ios)                { setPlatform('ios');     return }
+    if (/android/.test(ua)) { setPlatform('android'); return }
     setPlatform('desktop')
-    return () => window.removeEventListener('beforeinstallprompt', handler)
   }, [])
 
   async function handleInstall() {
-    if (!prompt) return
-    prompt.prompt()
-    const { outcome } = await prompt.userChoice
-    if (outcome === 'accepted') setDone(true)
-    setPrompt(null)
+    await install()
   }
 
-  // Hide when not yet detected or on desktop
   if (!platform || platform === 'desktop') return null
 
   const isIOS     = platform === 'ios'
   const isAndroid = platform === 'android'
 
-  // Show "installed" confirmation card when running as PWA or after just installing
-  if (isPWA || done) {
+  if (isPWA || isInstalled) {
     return (
       <div style={{ marginTop: '40px' }}>
         <div style={{
@@ -198,14 +180,14 @@ export default function HowItWorksInstallCard() {
           ) : (
             <button
               onClick={handleInstall}
-              disabled={!prompt}
+              disabled={!canInstall}
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: '7px',
-                background: prompt ? '#fff' : 'rgba(255,255,255,0.2)',
-                color: prompt ? '#085041' : '#9FE1CB',
+                background: canInstall ? '#fff' : 'rgba(255,255,255,0.2)',
+                color: canInstall ? '#085041' : '#9FE1CB',
                 border: 'none', borderRadius: '12px',
                 padding: '11px 20px', fontSize: '14px', fontWeight: '700',
-                cursor: prompt ? 'pointer' : 'default',
+                cursor: canInstall ? 'pointer' : 'default',
                 fontFamily: 'var(--font-inter, Inter, sans-serif)',
                 whiteSpace: 'nowrap',
                 transition: 'background 0.2s',
@@ -214,7 +196,7 @@ export default function HowItWorksInstallCard() {
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 18v-6M9 15l3 3 3-3M4 12v7a1 1 0 001 1h14a1 1 0 001-1v-7"/>
               </svg>
-              {prompt
+              {canInstall
                 ? 'Install App'
                 : 'Use browser menu → Install'}
             </button>

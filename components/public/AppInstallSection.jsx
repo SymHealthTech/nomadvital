@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useIsPWA } from '@/hooks/useIsPWA'
+import { usePWAInstall } from '@/hooks/usePWAInstall'
 
 const benefits = [
   {
@@ -52,37 +53,26 @@ const iosSteps = [
 
 export default function AppInstallSection() {
   const isPWA = useIsPWA()
-  const [platform, setPlatform]         = useState(null)   // null | 'ios' | 'android' | 'desktop'
-  const [deferredPrompt, setPrompt]     = useState(null)
-  const [installing, setInstalling]     = useState(false)
-  const [installed, setInstalled]       = useState(false)
-  const [showIOS, setShowIOS]           = useState(false)
+  const { canInstall, install, isInstalled } = usePWAInstall()
+  const [platform,    setPlatform]  = useState(null)
+  const [installing,  setInstalling] = useState(false)
+  const [showIOS,     setShowIOS]   = useState(false)
 
   useEffect(() => {
-    const ua = navigator.userAgent.toLowerCase()
+    const ua  = navigator.userAgent.toLowerCase()
     const ios = /iphone|ipad|ipod/.test(ua) && !window.navigator.standalone
-    if (ios) { setPlatform('ios'); return }
+    if (ios)               { setPlatform('ios');     return }
     if (/android/.test(ua)) { setPlatform('android'); return }
     setPlatform('desktop')
-
-    const handler = e => { e.preventDefault(); setPrompt(e) }
-    window.addEventListener('beforeinstallprompt', handler)
-    return () => window.removeEventListener('beforeinstallprompt', handler)
   }, [])
 
   async function handleInstall() {
-    if (!deferredPrompt) return
     setInstalling(true)
-    deferredPrompt.prompt()
-    const { outcome } = await deferredPrompt.userChoice
-    if (outcome === 'accepted') setInstalled(true)
+    await install()
     setInstalling(false)
-    setPrompt(null)
   }
 
-  /* Don't render if already running as PWA or just installed */
-  if (isPWA || installed) return null
-  /* Don't flash on server / before detection */
+  if (isPWA || isInstalled) return null
   if (!platform) return null
 
   const isAndroid = platform === 'android'
@@ -252,12 +242,12 @@ export default function AppInstallSection() {
             {(isAndroid || isDesktop) && (
               <button
                 onClick={handleInstall}
-                disabled={installing || !deferredPrompt}
+                disabled={installing || !canInstall}
                 style={{
-                  background: deferredPrompt ? '#1D9E75' : 'rgba(29,158,117,0.4)',
+                  background: canInstall ? '#1D9E75' : 'rgba(29,158,117,0.4)',
                   color: '#fff', border: 'none', borderRadius: '12px',
                   padding: '13px 28px', fontSize: '15px', fontWeight: '600',
-                  cursor: deferredPrompt ? 'pointer' : 'default',
+                  cursor: canInstall ? 'pointer' : 'default',
                   fontFamily: 'var(--font-inter, Inter, sans-serif)',
                   width: '100%', transition: 'background 0.2s',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
@@ -266,7 +256,7 @@ export default function AppInstallSection() {
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 18v-6M9 15l3 3 3-3M4 12v7a1 1 0 001 1h14a1 1 0 001-1v-7"/>
                 </svg>
-                {installing ? 'Installing…' : deferredPrompt ? 'Install App — Free' : 'Open in browser menu to install'}
+                {installing ? 'Installing…' : canInstall ? 'Install App — Free' : 'Open in browser menu to install'}
               </button>
             )}
 

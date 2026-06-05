@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useIsPWA } from '@/hooks/useIsPWA'
+import { usePWAInstall } from '@/hooks/usePWAInstall'
 
 const SESSION_KEY = 'showPWAPrompt'
 
@@ -10,48 +11,44 @@ const SESSION_KEY = 'showPWAPrompt'
  * PaymentSuccessRefresh sets sessionStorage[SESSION_KEY] = 'true' before
  * redirecting to /dashboard (clean URL). This component detects that flag,
  * clears it, and shows the install prompt.
+ *
+ * Uses usePWAInstall (global singleton) so the beforeinstallprompt event is
+ * never missed even if it fired before this component mounted.
  */
 export default function PWAInstallModal() {
-  const isPWA = useIsPWA()
-  const [show,           setShow]     = useState(false)
-  const [platform,       setPlatform] = useState(null)
-  const [deferredPrompt, setPrompt]   = useState(null)
-  const [installing,     setInstalling] = useState(false)
-  const [done,           setDone]     = useState(false)
-  const [showIOSSteps,   setShowIOS]  = useState(false)
+  const isPWA                              = useIsPWA()
+  const { canInstall, install, isInstalled } = usePWAInstall()
+
+  const [show,         setShow]     = useState(false)
+  const [platform,     setPlatform] = useState(null)
+  const [installing,   setInstalling] = useState(false)
+  const [done,         setDone]     = useState(false)
+  const [showIOSSteps, setShowIOS]  = useState(false)
 
   useEffect(() => {
-    /* Check flag */
     if (sessionStorage.getItem(SESSION_KEY) !== 'true') return
     sessionStorage.removeItem(SESSION_KEY)
 
-    /* Already installed as PWA — skip */
-    if (isPWA) return
+    // Already running as installed PWA — nothing to do
+    if (isPWA || isInstalled) return
 
     const ua  = navigator.userAgent.toLowerCase()
     const ios = /iphone|ipad|ipod/.test(ua) && !window.navigator.standalone
     setPlatform(ios ? 'ios' : /android/.test(ua) ? 'android' : 'desktop')
     setShow(true)
-
-    const handler = e => { e.preventDefault(); setPrompt(e) }
-    window.addEventListener('beforeinstallprompt', handler)
-    return () => window.removeEventListener('beforeinstallprompt', handler)
-  }, [isPWA])
+  }, [isPWA, isInstalled])
 
   async function handleInstall() {
-    if (!deferredPrompt) return
     setInstalling(true)
-    deferredPrompt.prompt()
-    const { outcome } = await deferredPrompt.userChoice
-    if (outcome === 'accepted') setDone(true)
+    const accepted = await install()
+    if (accepted) setDone(true)
     setInstalling(false)
-    setPrompt(null)
     setShow(false)
   }
 
   function dismiss() { setShow(false) }
 
-  if (!show) return null
+  if (!show || done) return null
 
   const isIOS     = platform === 'ios'
   const isAndroid = platform === 'android'
@@ -97,7 +94,7 @@ export default function PWAInstallModal() {
           </svg>
         </button>
 
-        {/* Confetti / celebration icon */}
+        {/* Celebration icon */}
         <div style={{ fontSize: '44px', marginBottom: '6px', lineHeight: 1 }}>🎉</div>
 
         {/* Pro badge */}
@@ -133,10 +130,9 @@ export default function PWAInstallModal() {
           No app store needed.
         </p>
 
-        {/* Divider */}
         <div style={{ borderTop: '1px solid #E8E6E0', marginBottom: '20px' }} />
 
-        {/* Platform-specific install UI */}
+        {/* iOS — manual steps */}
         {isIOS && (
           <>
             <button
@@ -191,16 +187,17 @@ export default function PWAInstallModal() {
           </>
         )}
 
+        {/* Android / Desktop — native prompt */}
         {(isAndroid || isDesktop) && (
           <button
             onClick={handleInstall}
-            disabled={installing || !deferredPrompt}
+            disabled={installing || !canInstall}
             style={{
               width: '100%', padding: '13px',
-              background: deferredPrompt ? '#085041' : '#D3D1C7',
+              background: canInstall ? '#085041' : '#D3D1C7',
               color: '#fff', border: 'none', borderRadius: '12px',
               fontSize: '15px', fontWeight: '600',
-              cursor: deferredPrompt ? 'pointer' : 'default',
+              cursor: canInstall ? 'pointer' : 'default',
               fontFamily: 'var(--font-inter, Inter, sans-serif)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
               transition: 'background 0.15s',
@@ -211,13 +208,13 @@ export default function PWAInstallModal() {
             </svg>
             {installing
               ? 'Installing…'
-              : deferredPrompt
+              : canInstall
               ? `Install App — ${isDesktop ? 'Desktop' : 'Android'}`
               : 'Use browser menu → "Install App"'}
           </button>
         )}
 
-        {/* Skip link */}
+        {/* Skip */}
         <button
           onClick={dismiss}
           style={{

@@ -62,12 +62,23 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${playfair.variable} ${inter.variable}`}>
       <head>
+        {/* PWA manifest */}
         <link rel="manifest" href="/manifest.json" />
+
+        {/* Viewport — viewport-fit=cover is required for env(safe-area-inset-*) on iOS notch devices */}
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+        {/* Theme colour shown in browser chrome and Android task switcher */}
         <meta name="theme-color" content="#085041" />
+
+        {/* iOS standalone / home-screen app */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        {/* black-translucent lets the status bar overlay the app (transparent),
+            which pairs correctly with the env(safe-area-inset-top) offset in globals.css */}
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="NomadVital" />
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+        <link rel="apple-touch-icon" sizes="512x512" href="/icons/icon-512.png" />
       </head>
       <body className="font-inter min-h-screen flex flex-col">
         {/* Detect PWA mode BEFORE React hydrates — sets .pwa-mode on body immediately */}

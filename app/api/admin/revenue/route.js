@@ -46,7 +46,17 @@ export async function GET() {
       signupsByDay.push({ date: key, count: countsByDate.get(key) || 0 })
     }
 
-    return NextResponse.json({ proUsers, mrr, arr, signupsByDay })
+    return NextResponse.json(
+      { proUsers, mrr, arr, signupsByDay },
+      {
+        headers: {
+          // Admin-only — must NOT be stored in shared CDN (private).
+          // 60-second browser cache prevents the aggregation + 30-iteration loop
+          // from re-running on every rapid dashboard tab switch.
+          'Cache-Control': 'private, max-age=60',
+        },
+      }
+    )
   } catch (err) {
     console.error('GET /api/admin/revenue:', err)
     return NextResponse.json({ error: 'Service temporarily unavailable.' }, { status: 503 })

@@ -7,18 +7,20 @@ import DestinationRating from '@/models/DestinationRating'
 import Destination from '@/models/Destination'
 
 async function recalculate(destinationSlug) {
-  const ratings = await DestinationRating.find({ destinationSlug })
-  if (ratings.length === 0) {
-    await Destination.findOneAndUpdate({ slug: destinationSlug }, { averageRating: 0, totalRatings: 0 })
-    return { newAverage: 0, totalRatings: 0 }
-  }
-  const sum = ratings.reduce((acc, r) => acc + r.rating, 0)
-  const avg = Math.round((sum / ratings.length) * 10) / 10
+  // Single aggregation query — MongoDB calculates avg and count server-side.
+  // Previously fetched every rating document into Node.js memory and used
+  // reduce() to compute the average, which scaled as O(n) CPU per write.
+  const [result] = await DestinationRating.aggregate([
+    { $match: { destinationSlug } },
+    { $group: { _id: null, average: { $avg: '$rating' }, count: { $sum: 1 } } },
+  ])
+  const newAverage = result ? Math.round(result.average * 10) / 10 : 0
+  const totalRatings = result?.count ?? 0
   await Destination.findOneAndUpdate(
     { slug: destinationSlug },
-    { averageRating: avg, totalRatings: ratings.length }
+    { averageRating: newAverage, totalRatings }
   )
-  return { newAverage: avg, totalRatings: ratings.length }
+  return { newAverage, totalRatings }
 }
 
 export async function GET(request) {
@@ -45,11 +47,17 @@ export async function GET(request) {
       if (existing) userRating = existing.rating
     }
 
-    return NextResponse.json({
-      averageRating: dest?.averageRating ?? 0,
-      totalRatings: dest?.totalRatings ?? 0,
-      userRating,
-    })
+    return NextResponse.json(
+      { averageRating: dest?.averageRating ?? 0, totalRatings: dest?.totalRatings ?? 0, userRating },
+      {
+        headers: {
+          // Response includes per-user rating so must not be shared in CDN.
+          // private/max-age=60 lets the browser skip re-fetching for 60 s on
+          // rapid navigation, without risking another user seeing stale data.
+          'Cache-Control': 'private, max-age=60',
+        },
+      }
+    )
   } catch (err) {
     console.error('GET /api/ratings:', err)
     return NextResponse.json({ error: 'Failed to fetch ratings.', code: 'SERVER_ERROR' }, { status: 500 })

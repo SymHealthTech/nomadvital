@@ -18,7 +18,13 @@ export async function GET(request, { params }) {
       .limit(8)
       .select('authorName authorCity healthCondition tipText createdAt')
 
-    return NextResponse.json(tips)
+    return NextResponse.json(tips, {
+      headers: {
+        // Tips are community content approved by admin — refreshes slowly.
+        // CDN caches for 10 minutes; background revalidation window is 30 minutes.
+        'Cache-Control': 'public, s-maxage=600, stale-while-revalidate=1800',
+      },
+    })
   } catch (err) {
     console.error('GET /api/tips/[destination]:', err)
     return NextResponse.json(

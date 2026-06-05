@@ -11,7 +11,13 @@ export async function GET() {
       .select('name slug country conditions isFree viewCount')
       .sort({ createdAt: -1 })
 
-    return NextResponse.json(destinations)
+    return NextResponse.json(destinations, {
+      headers: {
+        // Destination list is editorial content — changes only when admin publishes.
+        // CDN caches for 1 hour; stale-while-revalidate allows 24h of background refresh.
+        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
+      },
+    })
   } catch (err) {
     console.error('GET /api/destinations:', err)
     return NextResponse.json({ error: 'Failed to fetch destinations' }, { status: 500 })

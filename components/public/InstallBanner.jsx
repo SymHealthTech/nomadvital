@@ -2,19 +2,20 @@
 
 import { useEffect, useState } from 'react'
 import { useIsPWA } from '@/hooks/useIsPWA'
+import { usePWAInstall } from '@/hooks/usePWAInstall'
 
 export default function InstallBanner() {
-  const isPWA = useIsPWA()
-  const [deferredPrompt, setDeferredPrompt] = useState(null)
-  const [isIOS, setIsIOS] = useState(false)
-  const [show, setShow] = useState(false)
-  const [showIOSSteps, setShowIOSSteps] = useState(false) // iOS: toggle tap instructions
+  const isPWA               = useIsPWA()
+  const { canInstall, install, isInstalled } = usePWAInstall()
+
+  const [isIOS,        setIsIOS]        = useState(false)
+  const [show,         setShow]         = useState(false)
+  const [showIOSSteps, setShowIOSSteps] = useState(false)
+  const [dismissed,    setDismissed]    = useState(false)
 
   useEffect(() => {
-    // Already running as installed PWA — hide everything
-    if (isPWA) return
-
-    // User already dismissed this session
+    // Already running as installed PWA or user already dismissed this session
+    if (isPWA || isInstalled) return
     if (sessionStorage.getItem('pwaInstallDismissed') === 'true') return
 
     const ios =
@@ -24,35 +25,30 @@ export default function InstallBanner() {
     setIsIOS(ios)
 
     if (ios) {
-      // Show iOS hint automatically after a short delay
       const t = setTimeout(() => setShow(true), 2500)
       return () => clearTimeout(t)
     }
+  }, [isPWA, isInstalled])
 
-    // Android / Chrome — listen for the native install prompt
-    const handler = (e) => {
-      e.preventDefault()
-      setDeferredPrompt(e)
-      setShow(true)
-    }
-    window.addEventListener('beforeinstallprompt', handler)
-    return () => window.removeEventListener('beforeinstallprompt', handler)
-  }, [isPWA])
+  // Show banner when the native install prompt becomes available (Android/Chrome)
+  useEffect(() => {
+    if (isPWA || isInstalled || isIOS) return
+    if (sessionStorage.getItem('pwaInstallDismissed') === 'true') return
+    if (canInstall) setShow(true)
+  }, [canInstall, isPWA, isInstalled, isIOS])
 
   function dismiss() {
     sessionStorage.setItem('pwaInstallDismissed', 'true')
+    setDismissed(true)
     setShow(false)
   }
 
   async function handleInstall() {
-    if (!deferredPrompt) return
-    deferredPrompt.prompt()
-    const { outcome } = await deferredPrompt.userChoice
-    if (outcome === 'accepted') setShow(false)
-    setDeferredPrompt(null)
+    const accepted = await install()
+    if (accepted) setShow(false)
   }
 
-  if (!show) return null
+  if (!show || dismissed) return null
 
   return (
     <div className="md:hidden flex items-center justify-center" style={{

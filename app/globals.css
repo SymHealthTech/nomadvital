@@ -145,6 +145,10 @@ body.pwa-mode .pwa-guard-auth {
 /* ── PWA body layout ── */
 body.pwa-mode {
   padding-top: env(safe-area-inset-top, 0px);
+  /* With black-translucent iOS status bar the status bar is transparent.
+     Setting body background to the header colour means the env(safe-area-inset-top)
+     gap shows dark green instead of beige, making the status bar blend into the header. */
+  background-color: #085041;
 }
 
 body.pwa-mode main {

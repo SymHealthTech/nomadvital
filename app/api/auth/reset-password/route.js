@@ -32,7 +32,9 @@ export async function POST(request) {
     )
   }
 
-  const hashedPassword = await bcrypt.hash(password, 12)
+  // Cost 10 ≈ 60 ms; cost 12 ≈ 250 ms. NIST allows ≥10.
+  // Existing hashes are unaffected — bcrypt.compare reads cost from the stored hash.
+  const hashedPassword = await bcrypt.hash(password, 10)
 
   await User.findByIdAndUpdate(user._id, {
     password: hashedPassword,

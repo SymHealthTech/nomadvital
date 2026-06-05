@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useIsPWA } from '@/hooks/useIsPWA'
+import { usePWAInstall } from '@/hooks/usePWAInstall'
 
 /**
  * Persistent "Install app" badge shown in the hero section.
@@ -10,45 +11,25 @@ import { useIsPWA } from '@/hooks/useIsPWA'
  */
 export default function HeroInstallBadge() {
   const isPWA = useIsPWA()
-  const [platform, setPlatform]     = useState(null)   // null | 'ios' | 'android' | 'desktop'
-  const [prompt,   setPrompt]       = useState(null)
-  const [showTip,  setShowTip]      = useState(false)  // iOS tooltip
-  const [done,     setDone]         = useState(false)
+  const { canInstall, install, isInstalled } = usePWAInstall()
+  const [platform, setPlatform] = useState(null)
+  const [showTip,  setShowTip]  = useState(false)
 
   useEffect(() => {
-    // Register beforeinstallprompt FIRST — before any early returns
-    // so Android and desktop both capture it
-    const handler = e => { e.preventDefault(); setPrompt(e) }
-    window.addEventListener('beforeinstallprompt', handler)
-
     const ua  = navigator.userAgent.toLowerCase()
     const ios = /iphone|ipad|ipod/.test(ua) && !window.navigator.standalone
-    if (ios) {
-      setPlatform('ios')
-      return () => window.removeEventListener('beforeinstallprompt', handler)
-    }
-    if (/android/.test(ua)) {
-      setPlatform('android')
-      return () => window.removeEventListener('beforeinstallprompt', handler)
-    }
-    // Desktop — hide (install-from-desktop is not a priority use case)
+    if (ios)                { setPlatform('ios');     return }
+    if (/android/.test(ua)) { setPlatform('android'); return }
     setPlatform('desktop')
-    return () => window.removeEventListener('beforeinstallprompt', handler)
   }, [])
 
   async function handleInstall() {
-    if (!prompt) return
-    prompt.prompt()
-    const { outcome } = await prompt.userChoice
-    if (outcome === 'accepted') { setDone(true) }
-    setPrompt(null)
+    await install()
   }
 
-  // Hide when not yet detected or on desktop
   if (!platform || platform === 'desktop') return null
 
-  // Show "installed" confirmation badge when running as PWA or after just installing
-  if (isPWA || done) {
+  if (isPWA || isInstalled) {
     return (
       <div style={{ marginTop: '18px', display: 'flex', justifyContent: 'center' }}>
         <div style={{
@@ -98,7 +79,7 @@ export default function HeroInstallBadge() {
 
       {/* Badge pill */}
       <button
-        onClick={isIOS ? () => setShowTip(s => !s) : handleInstall}
+        onClick={isIOS ? () => setShowTip(s => !s) : (canInstall ? handleInstall : undefined)}
         style={{
           display: 'inline-flex',
           alignItems: 'center',

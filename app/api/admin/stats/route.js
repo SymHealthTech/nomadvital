@@ -71,26 +71,36 @@ export async function GET() {
     const apiCostToday = questionsToday * 0.004
     const apiCostThisMonth = questionsThisMonth * 0.004
 
-    return NextResponse.json({
-      totalUsers,
-      proUsers,
-      proMonthlyUsers,
-      proAnnuallyUsers,
-      monthlyRevenue,
-      questionsToday,
-      questionsThisMonth,
-      apiCostToday,
-      apiCostThisMonth,
-      newSignupsThisWeek,
-      newProThisMonth,
-      recentSignups: recentSignupsRaw.map((u) => ({
-        name: u.name,
-        email: u.email,
-        plan: u.plan,
-        planType: u.planType,
-        createdAt: u.createdAt,
-      })),
-    })
+    return NextResponse.json(
+      {
+        totalUsers,
+        proUsers,
+        proMonthlyUsers,
+        proAnnuallyUsers,
+        monthlyRevenue,
+        questionsToday,
+        questionsThisMonth,
+        apiCostToday,
+        apiCostThisMonth,
+        newSignupsThisWeek,
+        newProThisMonth,
+        recentSignups: recentSignupsRaw.map((u) => ({
+          name: u.name,
+          email: u.email,
+          plan: u.plan,
+          planType: u.planType,
+          createdAt: u.createdAt,
+        })),
+      },
+      {
+        headers: {
+          // Admin-only — must NOT be stored in shared CDN (private).
+          // Allows the browser to skip re-fetching for 60 s so rapid dashboard
+          // refreshes don't re-execute 8 parallel DB queries every time.
+          'Cache-Control': 'private, max-age=60',
+        },
+      }
+    )
   } catch (err) {
     console.error('GET /api/admin/stats:', err)
     return NextResponse.json({ error: 'Service temporarily unavailable.' }, { status: 503 })
