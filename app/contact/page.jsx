@@ -64,7 +64,7 @@ export default function ContactPage() {
                   Support, account questions, partnerships, privacy requests — send everything here.
                 </p>
                 <a
-                  href="mailto:contact@nomadvital.com"
+                  href="mailto:admin.nomadvital@gmail.com"
                   style={{
                     fontSize: '14px',
                     fontWeight: '600',
@@ -73,7 +73,7 @@ export default function ContactPage() {
                     fontFamily: 'var(--font-inter, Inter, sans-serif)',
                   }}
                 >
-                  contact@nomadvital.com →
+                  admin.nomadvital@gmail.com →
                 </a>
               </div>
             </div>

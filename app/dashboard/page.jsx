@@ -218,9 +218,9 @@ export default async function DashboardPage() {
           {isPro && (
             <div className="flex justify-between items-center text-sm pt-1">
               <span className="text-[#888780]" style={{ fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>Support</span>
-              <a href="mailto:contact@nomadvital.com"
+              <a href="mailto:admin.nomadvital@gmail.com"
                 style={{ color: '#1D9E75', textDecoration: 'none', fontSize: '13px', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
-                contact@nomadvital.com
+                admin.nomadvital@gmail.com
               </a>
             </div>
           )}

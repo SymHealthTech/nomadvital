@@ -99,7 +99,7 @@ export default function RootLayout({ children }) {
               sameAs: [],
               contactPoint: {
                 '@type': 'ContactPoint',
-                email: 'contact@nomadvital.com',
+                email: 'admin.nomadvital@gmail.com',
                 contactType: 'customer support',
               },
             }),

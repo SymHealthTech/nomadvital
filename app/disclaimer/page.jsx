@@ -123,8 +123,8 @@ export default function DisclaimerPage() {
           <p style={{ ...P_STYLE, margin: 0, color: '#085041' }}>
             <strong>Questions about this disclaimer?</strong>{' '}
             Contact us at{' '}
-            <a href="mailto:contact@nomadvital.com" style={{ color: '#1D9E75', textDecoration: 'underline' }}>
-              contact@nomadvital.com
+            <a href="mailto:admin.nomadvital@gmail.com" style={{ color: '#1D9E75', textDecoration: 'underline' }}>
+              admin.nomadvital@gmail.com
             </a>
           </p>
         </div>
