@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import LeaveConfirmation from '@/components/public/LeaveConfirmation'
 
@@ -188,7 +189,14 @@ function TypingDots() {
 
 export default function PlannerClient() {
   const { data: session, status } = useSession()
+  const router = useRouter()
   const isPro = session?.user?.plan === 'pro'
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.replace('/login')
+    }
+  }, [status, router])
 
   const [destination, setDestination] = useState('')
   const [condition, setCondition] = useState('')
@@ -262,24 +270,15 @@ Keep each meal description to 1-2 sentences. Be specific about local dishes avai
     }
   }
 
-  // Not logged in
-  if (status === 'unauthenticated') {
+  if (status === 'loading' || status === 'unauthenticated') {
     return (
-      <div style={{ textAlign: 'center', padding: '48px 24px', maxWidth: '420px', margin: '0 auto' }}>
-        <div style={{ fontSize: '40px', marginBottom: '16px' }}>🗺️</div>
-        <h2 style={{ fontFamily: 'var(--font-playfair, Georgia, serif)', fontSize: '22px', fontWeight: '600', color: '#085041', marginBottom: '10px' }}>
-          Sign in to use the planner
-        </h2>
-        <p style={{ fontSize: '14px', color: '#5F5E5A', marginBottom: '24px', lineHeight: '1.6', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
-          The diet travel planner generates a personalised day-by-day meal plan using AI — sign in to get started for free.
-        </p>
-        <Link href="/login" style={{ display: 'inline-block', background: '#1D9E75', color: '#fff', fontWeight: '700', fontSize: '14px', padding: '12px 28px', borderRadius: '10px', textDecoration: 'none', marginBottom: '12px', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
-          Sign in
-        </Link>
-        <p style={{ fontSize: '13px', color: '#888780', fontFamily: 'var(--font-inter, Inter, sans-serif)' }}>
-          No account?{' '}
-          <Link href="/signup" style={{ color: '#1D9E75', textDecoration: 'none', fontWeight: '500' }}>Create one free →</Link>
-        </p>
+      <div style={{ minHeight: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ display: 'flex', gap: '5px' }}>
+          {[0, 1, 2].map(i => (
+            <div key={i} style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#1D9E75', animation: 'bounce 1.2s ease-in-out infinite', animationDelay: `${i * 0.2}s` }} />
+          ))}
+        </div>
+        <style>{`@keyframes bounce { 0%,80%,100%{transform:translateY(0);opacity:0.4} 40%{transform:translateY(-6px);opacity:1} }`}</style>
       </div>
     )
   }

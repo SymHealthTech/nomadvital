@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { getPersonaById } from '@/lib/travelerPersonas'
 
@@ -143,6 +144,7 @@ function MicButton({ onTranscript, disabled }) {
 
 export default function AskPage() {
   const { data: session, status } = useSession()
+  const router = useRouter()
   const isPro = session?.user?.plan === 'pro'
 
   const [personaId, setPersonaId] = useState('general')
@@ -155,6 +157,12 @@ export default function AskPage() {
   const bottomRef = useRef(null)
   const inputRef = useRef(null)
   const deviceIdRef = useRef(null)
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.replace('/login')
+    }
+  }, [status, router])
 
   // Generate / retrieve a persistent device ID (survives PWA close/reopen)
   useEffect(() => {
