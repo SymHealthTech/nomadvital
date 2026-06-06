@@ -33,6 +33,7 @@ const useClientLayoutEffect =
 
 export default function BackPressGuard() {
   const [show, setShow] = useState(false)
+  const [exitHint, setExitHint] = useState(false)
   const pathname = usePathname()
   const router   = useRouter()
 
@@ -120,28 +121,98 @@ export default function BackPressGuard() {
   function handleCloseApp() {
     isOpen.current = false
     setShow(false)
+    setExitHint(true)
 
-    // Allow all subsequent popstate events to pass through so the OS can
-    // close the PWA window after the history stack is empty.
     allowExit.current = true
 
-    // Attempt programmatic close (only works in windows opened by JS;
-    // will silently no-op in a home-screen PWA — that's expected).
+    // Try programmatic close (works in JS-opened windows; no-op for standalone PWA).
     window.close()
 
-    // Primary exit path for Android Chrome PWA: drain the entire history
-    // stack back to position 0.  Once at position 0, the next hardware back
-    // press is handled by the OS and closes the PWA activity.
-    //
-    // The sentinel useClientLayoutEffect is suppressed (allowExit = true)
-    // during the drain so no new entries are pushed while we go back.
+    // Drain the entire history stack to position 0, then call history.back()
+    // once more. On Android Chrome standalone PWA, history.back() at position 0
+    // signals the OS to close the activity — same as the user pressing the
+    // hardware back button when there is nothing left in the stack.
     setTimeout(() => {
+      if (!allowExit.current) return // cancelled by "Stay in App"
       const stepsBack = window.history.length - 1
-      if (stepsBack > 0) {
-        window.history.go(-stepsBack)
-      }
+      if (stepsBack > 0) window.history.go(-stepsBack)
+
+      // After the drain settles, one final back() to close the PWA activity.
+      setTimeout(() => {
+        if (!allowExit.current) return
+        window.history.back()
+      }, 350)
     }, 100)
   }
+
+  // Shown after "Close App" — the drain + history.back() fires automatically;
+  // this hint covers the brief moment if the device doesn't close immediately.
+  if (exitHint) return (
+    <div
+      style={{
+        position: 'fixed', inset: 0,
+        background: 'rgba(0,0,0,0.45)',
+        zIndex: 9999,
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center',
+        padding: '32px',
+      }}
+      onClick={() => {
+        allowExit.current = false
+        setExitHint(false)
+        window.history.pushState({ nvGuard: true }, '', window.location.href)
+      }}
+    >
+      <div style={{
+        background: '#fff', borderRadius: '20px',
+        padding: '28px 24px 24px',
+        maxWidth: '300px', width: '100%', textAlign: 'center',
+        boxShadow: '0 20px 60px rgba(0,0,0,0.22)',
+      }}>
+        <div style={{
+          width: '48px', height: '48px', borderRadius: '50%',
+          background: '#E8F5EE',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          margin: '0 auto 14px',
+        }}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+            stroke="#085041" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 12H5M12 5l-7 7 7 7"/>
+          </svg>
+        </div>
+        <p style={{
+          fontFamily: 'var(--font-inter, Inter, sans-serif)',
+          fontSize: '15px', fontWeight: '600', color: '#085041',
+          marginBottom: '6px',
+        }}>
+          Press Back to exit
+        </p>
+        <p style={{
+          fontSize: '12px', color: '#5F5E5A',
+          fontFamily: 'var(--font-inter, Inter, sans-serif)',
+          marginBottom: '20px',
+        }}>
+          Tap the back button once more to close NomadVital.
+        </p>
+        <button
+          onClick={() => {
+            allowExit.current = false
+            setExitHint(false)
+            window.history.pushState({ nvGuard: true }, '', window.location.href)
+          }}
+          style={{
+            width: '100%', padding: '12px',
+            border: '1.5px solid #D3D1C7', borderRadius: '12px',
+            background: '#F9F8F5', color: '#085041',
+            fontWeight: '600', fontSize: '14px', cursor: 'pointer',
+            fontFamily: 'var(--font-inter, Inter, sans-serif)',
+          }}
+        >
+          Stay in App
+        </button>
+      </div>
+    </div>
+  )
 
   if (!show) return null
 
