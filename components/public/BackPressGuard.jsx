@@ -79,7 +79,11 @@ export default function BackPressGuard() {
         return
       }
 
-      const currentPath = pathnameRef.current
+      // Use window.location.pathname (real-time) instead of pathnameRef
+      // (last-render value). pathnameRef can lag when the user presses back
+      // before a router.push() navigation has finished rendering, causing a
+      // slug page to be misidentified as a root page.
+      const currentPath = window.location.pathname
       const isRoot = ROOT_PAGES.has(currentPath)
 
       // Re-arm: push a fresh sentinel immediately so the NEXT hardware back
