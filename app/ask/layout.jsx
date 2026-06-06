@@ -1,3 +1,6 @@
+import { auth } from '@/lib/auth'
+import { redirect } from 'next/navigation'
+
 export const metadata = {
   title: 'AI Health Advisor — Ask About Food Safety & Nutrition',
   description:
@@ -10,6 +13,8 @@ export const metadata = {
   ],
 }
 
-export default function AskLayout({ children }) {
+export default async function AskLayout({ children }) {
+  const session = await auth()
+  if (!session) redirect('/login')
   return children
 }

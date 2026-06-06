@@ -1,10 +1,5 @@
 import PlannerClient from './PlannerClient'
 
-export const metadata = {
-  title: 'Diet Travel Planner — NomadVital',
-  description: 'Get a personalised AI-generated meal plan for your destination and health condition. Safe foods, local options, and condition-specific advice.',
-}
-
 export default function PlannerPage() {
   return (
     <div>
