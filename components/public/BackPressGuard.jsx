@@ -94,7 +94,11 @@ export default function BackPressGuard() {
       // ── Sub-page: navigate to logical parent ─────────────────────────────
       if (!isRoot) {
         const parent = getParentPath(currentPath) ?? '/'
-        routerRef.current.push(parent)
+        // Defer push to the next macrotask. Next.js App Router's own popstate
+        // listener runs first and puts the router in a "navigating" state;
+        // calling router.push() in the same tick is silently dropped. A
+        // setTimeout(0) lets that processing finish before we push the parent.
+        setTimeout(() => routerRef.current.push(parent), 0)
         return
       }
 
