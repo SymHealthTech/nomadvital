@@ -86,21 +86,23 @@ export default function BackPressGuard() {
       const currentPath = window.location.pathname
       const isRoot = ROOT_PAGES.has(currentPath)
 
-      // Re-arm: push a fresh sentinel immediately so the NEXT hardware back
-      // press is also intercepted.  This replaces the old history.go(1) +
-      // "skip next event" approach, which had async-timing races.
-      window.history.pushState({ nvGuard: true }, '', window.location.href)
-
       // ── Sub-page: navigate to logical parent ─────────────────────────────
+      // No re-arm needed here — useClientLayoutEffect pushes the sentinel for
+      // the parent page when it renders. Re-arming at the slug URL would leave
+      // a stale slug sentinel in history that later re-triggers sub-page logic
+      // and keeps pushing duplicate /destinations entries, eventually draining
+      // history to position 0 and letting the OS close the app silently.
       if (!isRoot) {
         const parent = getParentPath(currentPath) ?? '/'
-        // Defer push to the next macrotask. Next.js App Router's own popstate
-        // listener runs first and puts the router in a "navigating" state;
-        // calling router.push() in the same tick is silently dropped. A
-        // setTimeout(0) lets that processing finish before we push the parent.
+        // Defer to the next macrotask: Next.js App Router's own popstate handler
+        // runs first and marks the router "navigating"; calling push() in the
+        // same tick is silently dropped.
         setTimeout(() => routerRef.current.push(parent), 0)
         return
       }
+
+      // ── Root page: re-arm so every back press is intercepted ─────────────
+      window.history.pushState({ nvGuard: true }, '', window.location.href)
 
       // ── Root page: dismiss dialog if it is currently open ────────────────
       if (isOpen.current) {
