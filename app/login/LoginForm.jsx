@@ -2,11 +2,10 @@
 
 import { useState } from 'react'
 import { signIn } from 'next-auth/react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
 export default function LoginForm() {
-  const router = useRouter()
   const searchParams = useSearchParams()
   const otherDevice = searchParams.get('reason') === 'other_device'
 
@@ -45,7 +44,9 @@ export default function LoginForm() {
         setError('Invalid email or password. Please try again.')
       }
     } else {
-      router.push('/auth/redirect')
+      // Full navigation clears the Next.js router cache so prefetched
+      // "redirect to /login" responses for protected routes don't persist.
+      window.location.href = '/auth/redirect'
     }
 
     setLoading(false)
