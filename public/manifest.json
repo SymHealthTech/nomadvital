@@ -6,7 +6,7 @@
   "start_url": "/pwa-launch",
   "scope": "/",
   "display": "standalone",
-  "display_override": ["standalone", "browser"],
+  "display_override": ["standalone"],
   "orientation": "portrait-primary",
   "background_color": "#085041",
   "theme_color": "#085041",
