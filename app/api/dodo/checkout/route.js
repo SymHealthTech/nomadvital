@@ -37,30 +37,21 @@ export async function POST(request) {
       await user.save()
     }
 
-    // Create checkout / subscription session
-    const checkout = await dodo.subscriptions.create({
-      billing: {
-        city: 'N/A',
-        country: 'IN',
-        state: 'N/A',
-        street: 'N/A',
-        zipcode: 0,
-      },
+    // Create checkout session — customer fills billing details on the Dodo-hosted page
+    const checkout = await dodo.checkoutSessions.create({
+      product_cart: [{ product_id: productId, quantity: 1 }],
       customer: { customer_id: user.dodoCustomerId },
-      product_id: productId,
-      quantity: 1,
       return_url: `${process.env.NEXTAUTH_URL}/dashboard?payment=success`,
-      payment_link: true,
     })
 
-    // Store pending subscription ID so sync-plan can retrieve it quickly
-    const subId = checkout.subscription_id ?? checkout.id ?? null
-    if (subId) {
-      await User.findByIdAndUpdate(user._id, { dodoSubscriptionId: subId })
+    if (!checkout.checkout_url) {
+      console.error('Dodo checkout: no checkout_url in response', checkout)
+      return NextResponse.json({ error: 'Service temporarily unavailable. Please try again.' }, { status: 503 })
     }
 
-    return NextResponse.json({ checkoutUrl: checkout.payment_link })
-  } catch {
+    return NextResponse.json({ checkoutUrl: checkout.checkout_url })
+  } catch (err) {
+    console.error('Dodo checkout error:', err)
     return NextResponse.json({ error: 'Service temporarily unavailable. Please try again.' }, { status: 503 })
   }
 }
