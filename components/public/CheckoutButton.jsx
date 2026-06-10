@@ -35,7 +35,7 @@ export default function CheckoutButton({ billing = 'monthly', className, style, 
       const data = await res.json()
 
       if (!res.ok || !data.checkoutUrl) {
-        setError(data.error || 'Could not start checkout. Please try again.')
+        setError((data.detail || data.error) || 'Could not start checkout. Please try again.')
         setLoading(false)
         return
       }

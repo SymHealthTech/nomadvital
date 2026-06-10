@@ -19,8 +19,11 @@ export async function POST(request) {
     ? process.env.DODO_PRO_ANNUAL_PRODUCT_ID
     : process.env.DODO_PRO_MONTHLY_PRODUCT_ID
 
+  let step = 'db'
   try {
     await connectDB()
+
+    step = 'find_user'
     const user = await User.findById(session.user.id)
 
     if (!user) {
@@ -29,15 +32,17 @@ export async function POST(request) {
 
     // Create Dodo customer on first checkout
     if (!user.dodoCustomerId) {
+      step = 'create_customer'
       const customer = await dodo.customers.create({
         email: user.email,
-        name: user.name,
+        name: user.name || user.email,
       })
       user.dodoCustomerId = customer.customer_id
       await user.save()
     }
 
     // Create checkout session — customer fills billing details on the Dodo-hosted page
+    step = 'create_checkout'
     const checkout = await dodo.checkoutSessions.create({
       product_cart: [{ product_id: productId, quantity: 1 }],
       customer: { customer_id: user.dodoCustomerId },
@@ -46,12 +51,18 @@ export async function POST(request) {
 
     if (!checkout.checkout_url) {
       console.error('Dodo checkout: no checkout_url in response', checkout)
-      return NextResponse.json({ error: 'Service temporarily unavailable. Please try again.' }, { status: 503 })
+      return NextResponse.json({ error: 'Service temporarily unavailable. Please try again.', detail: 'no checkout_url returned', step }, { status: 503 })
     }
 
     return NextResponse.json({ checkoutUrl: checkout.checkout_url })
   } catch (err) {
-    console.error('Dodo checkout error:', err)
-    return NextResponse.json({ error: 'Service temporarily unavailable. Please try again.' }, { status: 503 })
+    console.error(`Dodo checkout error at step [${step}]:`, err)
+    const body = err?.error ?? err?.body ?? null
+    const detail = (typeof body === 'string' ? body : JSON.stringify(body)) || err?.message || String(err)
+    const status = err?.status ?? err?.statusCode ?? 503
+    return NextResponse.json(
+      { error: 'Service temporarily unavailable. Please try again.', detail, step },
+      { status: typeof status === 'number' ? status : 503 }
+    )
   }
 }
