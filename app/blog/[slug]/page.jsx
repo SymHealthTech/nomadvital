@@ -193,6 +193,27 @@ export default async function BlogPostPage({ params }) {
 
   return (
     <div>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'Article',
+            headline: postObj.title,
+            description: postObj.summary || postObj.title,
+            image: postObj.image || 'https://nomadvital.com/icons/icon-512.png',
+            datePublished: postObj.createdAt,
+            author: { '@type': 'Organization', name: 'NomadVital', url: 'https://nomadvital.com' },
+            publisher: {
+              '@type': 'Organization',
+              name: 'NomadVital',
+              logo: { '@type': 'ImageObject', url: 'https://nomadvital.com/icons/icon-512.png' },
+            },
+            url: `https://nomadvital.com/blog/${postObj.slug}`,
+            mainEntityOfPage: `https://nomadvital.com/blog/${postObj.slug}`,
+          }),
+        }}
+      />
       {/* Hero image */}
       <div style={{ position: 'relative', height: '240px', width: '100%', background: '#1A5C4A', overflow: 'hidden' }}>
         {postObj.image && (

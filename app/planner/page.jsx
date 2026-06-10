@@ -1,5 +1,33 @@
 import PlannerClient from './PlannerClient'
 
+export const metadata = {
+  title: 'AI Travel Meal Planner for Dietary Conditions | NomadVital',
+  description:
+    'Enter your destination and health condition — get a personalised day-by-day meal plan with safe local dishes, foods to avoid, and restaurant tips. Powered by AI.',
+  keywords: [
+    'AI meal planner for travelers',
+    'personalized travel meal plan',
+    'condition-specific travel meal plan',
+    'destination meal plan generator',
+    'travel diet planner AI',
+    'diabetic meal plan abroad',
+    'gluten-free meal plan by country',
+    'travel meal plan for food allergies',
+    'custom meal plan for international travel',
+    'day-by-day travel meal guide',
+    'AI diet planner travel',
+    'meal plan generator for travelers',
+    'travel food planner for health conditions',
+  ],
+  alternates: { canonical: 'https://nomadvital.com/planner' },
+  openGraph: {
+    title: 'AI Travel Meal Planner for Dietary Conditions | NomadVital',
+    description:
+      'Enter your destination and health condition — get a personalised day-by-day meal plan with safe local dishes, foods to avoid, and restaurant tips.',
+    url: 'https://nomadvital.com/planner',
+  },
+}
+
 export default function PlannerPage() {
   return (
     <div>

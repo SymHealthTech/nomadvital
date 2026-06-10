@@ -25,14 +25,19 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Invalid webhook signature.' }, { status: 401 })
   }
 
-  const payload = JSON.parse(rawBody)
+  let payload
+  try {
+    payload = JSON.parse(rawBody)
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON body.' }, { status: 400 })
+  }
   const eventType = payload.type
 
   try {
     await connectDB()
   } catch {
-    // Return 200 so Dodo doesn't keep retrying — we'll rely on the next delivery
-    return NextResponse.json({ received: true })
+    // Return 500 so Dodo retries delivery — a missed payment event cannot be recovered otherwise
+    return NextResponse.json({ error: 'Database unavailable' }, { status: 500 })
   }
 
   if (

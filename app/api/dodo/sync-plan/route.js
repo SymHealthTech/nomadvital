@@ -65,8 +65,8 @@ export async function POST() {
       }
     }
 
-    // ── Path 3: match by email across all recent active subs ──
-    const allSubs = await dodo.subscriptions.list({ status: 'active' })
+    // ── Path 3: match by email across recent active subs (capped to avoid full scans) ──
+    const allSubs = await dodo.subscriptions.list({ status: 'active', limit: 100 })
     const allItems = allSubs?.items ?? allSubs?.data ?? []
     const match = allItems.find(
       s => s.customer?.email?.toLowerCase() === user.email.toLowerCase()
@@ -83,6 +83,6 @@ export async function POST() {
     return NextResponse.json({ plan: 'free', updated: false })
   } catch (err) {
     console.error('sync-plan error:', err)
-    return NextResponse.json({ error: 'Failed to check subscription', detail: String(err) }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to check subscription. Please try again.' }, { status: 500 })
   }
 }

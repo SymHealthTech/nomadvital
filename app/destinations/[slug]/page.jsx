@@ -105,14 +105,17 @@ export async function generateMetadata({ params }) {
     if (dest?.name) destName = dest.name
   } catch {}
   return {
-    title: `${destName} Health Guide for Travelers — Food Safety & Nutrition`,
-    description: `Complete ${destName} food safety and nutrition guide for travelers. Condition-specific advice for diabetes, gluten-free diets, nut allergies and more. Know what to eat in ${destName}.`,
+    title: `Food Safety & Meal Guide: ${destName} for Travelers | NomadVital`,
+    description: `Complete ${destName} food safety and meal guide for travelers. Condition-specific advice for diabetes, gluten-free diets, nut allergies and more. Know exactly what to eat in ${destName}.`,
     keywords: [
       `${destName} food safety`,
       `${destName} travel health`,
-      `${destName} gluten free`,
-      `${destName} diabetes travel`,
+      `gluten-free guide ${destName}`,
+      `diabetic meal plan ${destName}`,
+      `nut allergy ${destName}`,
+      `safe foods ${destName}`,
       'destination health guide',
+      'travel food safety',
     ],
     alternates: { canonical: `https://nomadvital.com/destinations/${slug}` },
     openGraph: {
@@ -157,6 +160,26 @@ export default async function DestinationPage({ params }) {
 
   return (
     <div>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'MedicalWebPage',
+            name: `Food Safety & Meal Guide: ${dest.name} for Travelers`,
+            description: `Complete ${dest.name} food safety and meal guide for travelers with diabetes, gluten intolerance, nut allergies and more.`,
+            url: `https://nomadvital.com/destinations/${dest.slug}`,
+            about: { '@type': 'MedicalCondition', name: 'Dietary conditions and food safety during travel' },
+            audience: { '@type': 'MedicalAudience', audienceType: 'Travelers with dietary conditions' },
+            publisher: {
+              '@type': 'Organization',
+              name: 'NomadVital',
+              url: 'https://nomadvital.com',
+            },
+            disclaimer: 'This content is for informational purposes only and does not constitute medical advice. Always consult your doctor for medical decisions.',
+          }),
+        }}
+      />
       {/* Hero */}
       <div style={{ position: 'relative', height: '220px', background: '#085041', overflow: 'hidden' }}>
         {dest.image && (

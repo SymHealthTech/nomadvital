@@ -105,6 +105,27 @@ export default function RootLayout({ children }) {
             }),
           }}
         />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'MobileApplication',
+              name: 'NomadVital',
+              applicationCategory: 'HealthApplication',
+              operatingSystem: 'Web, iOS, Android',
+              offers: {
+                '@type': 'Offer',
+                price: '0',
+                priceCurrency: 'USD',
+                description: 'Free plan available',
+              },
+              description:
+                'AI-powered food safety and nutrition guidance for travelers. Install as a PWA on iOS and Android.',
+              url: 'https://nomadvital.com',
+            }),
+          }}
+        />
       </body>
     </html>
   )
