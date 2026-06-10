@@ -82,6 +82,7 @@ export default function Navbar() {
             Destinations
           </Link>
 
+          <Link href="/planner" className="hover:text-[#5DCAA5] transition-colors">Meal Planner</Link>
           <Link href="/blog" className="hover:text-[#5DCAA5] transition-colors">Blog</Link>
           <Link href="/pricing" className="hover:text-[#5DCAA5] transition-colors">Pricing</Link>
           <Link href="/ask" className="hover:text-[#5DCAA5] transition-colors">AI Advisor</Link>
@@ -238,6 +239,7 @@ export default function Navbar() {
       {menuOpen && (
         <div className="md:hidden border-t border-[#0F6E56] px-4 py-4 flex flex-col gap-3 text-sm font-medium">
           <Link href="/destinations" onClick={() => setMenuOpen(false)}>Destinations</Link>
+          <Link href="/planner" onClick={() => setMenuOpen(false)}>Meal Planner</Link>
           <Link href="/blog" onClick={() => setMenuOpen(false)}>Blog</Link>
           <Link href="/pricing" onClick={() => setMenuOpen(false)}>Pricing</Link>
           <Link href="/ask" onClick={() => setMenuOpen(false)}>AI Advisor</Link>
