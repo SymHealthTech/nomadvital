@@ -23,13 +23,6 @@ export const metadata = {
     default: 'NomadVital — AI Health Advisor for Travelers',
     template: '%s | NomadVital',
   },
-  icons: {
-    icon: [
-      { url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
-      { url: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
-    ],
-    apple: '/icons/icon-192.png',
-  },
   description:
     'AI-powered food safety and nutrition guidance for travelers. Personalized health advice for dietary conditions — diabetes, gluten-free, allergies and more.',
   keywords: [
@@ -72,7 +65,6 @@ export default function RootLayout({ children }) {
         {/* Favicon */}
         <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
         <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png" />
-        <link rel="shortcut icon" href="/icons/icon-192.png" />
 
         {/* PWA manifest */}
         <link rel="manifest" href="/manifest.json" />

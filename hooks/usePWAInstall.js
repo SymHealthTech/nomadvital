@@ -17,6 +17,7 @@ import { useEffect, useState } from 'react'
 
 let _deferredPrompt = null
 let _installed = false
+let _installing = false
 const _subscribers = new Set()
 
 function notify() {
@@ -66,16 +67,21 @@ export function usePWAInstall() {
   }, [])
 
   async function install() {
-    if (!_deferredPrompt) return false
-    _deferredPrompt.prompt()
-    const { outcome } = await _deferredPrompt.userChoice
-    if (outcome === 'accepted') {
-      _deferredPrompt = null
-      _installed = true
-      setDeferredPrompt(null)
-      setIsInstalled(true)
-      notify()
-      return true
+    if (!_deferredPrompt || _installing) return false
+    _installing = true
+    try {
+      _deferredPrompt.prompt()
+      const { outcome } = await _deferredPrompt.userChoice
+      if (outcome === 'accepted') {
+        _deferredPrompt = null
+        _installed = true
+        setDeferredPrompt(null)
+        setIsInstalled(true)
+        notify()
+        return true
+      }
+    } finally {
+      _installing = false
     }
     return false
   }
