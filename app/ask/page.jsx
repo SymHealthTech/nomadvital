@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { getPersonaById } from '@/lib/travelerPersonas'
+import { trackAdviceQuery } from '@/lib/analytics'
 
 const FREE_LIMIT = 3
 
@@ -224,6 +225,12 @@ export default function AskPage() {
       }
 
       setMessages(prev => [...prev, { role: 'assistant', text: data.reply }])
+
+      // Analytics: record that an advice query was answered. We deliberately send
+      // only a general, non-identifying category — never the question text, the
+      // traveler persona (a health condition), or any location/personal detail.
+      trackAdviceQuery('travel_health')
+
       if (!isPro && data.questionsUsed !== undefined) {
         setQuestionsUsed(data.questionsUsed)
         if (data.questionsRemaining === 0) setPaywallActive(true)

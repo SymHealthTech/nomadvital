@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { trackProSubscription } from '@/lib/analytics'
 
 export default function PaymentSuccessRefresh() {
   const searchParams = useSearchParams()
@@ -9,6 +10,9 @@ export default function PaymentSuccessRefresh() {
 
   useEffect(() => {
     if (searchParams.get('payment') !== 'success') return
+
+    // Non-identifying billing label passed through the Dodo return URL.
+    const planLabel = searchParams.get('plan') === 'annual' ? 'annual' : 'monthly'
 
     async function syncAndReload() {
       setSyncing(true)
@@ -22,6 +26,12 @@ export default function PaymentSuccessRefresh() {
           const data = await res.json()
 
           if (data.plan === 'pro') {
+            // Fire the GA4 purchase event only on a freshly-confirmed upgrade —
+            // `alreadyPro` means the plan was active before this return, so skip
+            // it to avoid double-counting on refresh/re-visit.
+            if (!data.alreadyPro) {
+              trackProSubscription(planLabel)
+            }
             // Signal the PWA install modal to appear after the reload
             sessionStorage.setItem('showPWAPrompt', 'true')
             // Hard reload — the session callback always reads fresh from DB

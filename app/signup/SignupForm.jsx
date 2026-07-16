@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { trackSignupCompleted } from '@/lib/analytics'
 
 export default function SignupForm() {
   const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '' })
@@ -41,6 +42,9 @@ export default function SignupForm() {
       setError(data.error || 'Something went wrong. Please try again.')
       return
     }
+
+    // Account created successfully — record the signup (no PII sent).
+    trackSignupCompleted()
 
     // Show "check your email" screen
     setSubmittedEmail(form.email)

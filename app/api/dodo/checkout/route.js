@@ -43,10 +43,13 @@ export async function POST(request) {
 
     // Create checkout session — customer fills billing details on the Dodo-hosted page
     step = 'create_checkout'
+    // Include the billing label so the client success handler can report a
+    // non-identifying plan_type to analytics (monthly vs annual).
+    const planLabel = billing === 'annual' ? 'annual' : 'monthly'
     const checkout = await dodo.checkoutSessions.create({
       product_cart: [{ product_id: productId, quantity: 1 }],
       customer: { customer_id: user.dodoCustomerId },
-      return_url: `${process.env.NEXTAUTH_URL}/dashboard?payment=success`,
+      return_url: `${process.env.NEXTAUTH_URL}/dashboard?payment=success&plan=${planLabel}`,
     })
 
     if (!checkout.checkout_url) {

@@ -1,5 +1,6 @@
 import './globals.css'
 import { Playfair_Display, Inter } from 'next/font/google'
+import { GoogleAnalytics } from '@next/third-parties/google'
 import ConditionalLayout from '@/components/public/ConditionalLayout'
 import Providers from '@/components/public/Providers'
 
@@ -130,6 +131,10 @@ export default function RootLayout({ children }) {
             }),
           }}
         />
+        {/* Google Analytics 4 — only mounts when NEXT_PUBLIC_GA_ID is set */}
+        {process.env.NEXT_PUBLIC_GA_ID && (
+          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
+        )}
       </body>
     </html>
   )

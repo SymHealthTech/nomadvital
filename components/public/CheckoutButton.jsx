@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
+import { trackTrialStarted } from '@/lib/analytics'
 
 export default function CheckoutButton({ billing = 'monthly', className, style, children }) {
   const { data: session, status } = useSession()
@@ -39,6 +40,9 @@ export default function CheckoutButton({ billing = 'monthly', className, style, 
         setLoading(false)
         return
       }
+
+      // Checkout session created — the user is entering the 7-day free trial flow.
+      trackTrialStarted()
 
       window.location.href = data.checkoutUrl
     } catch {
